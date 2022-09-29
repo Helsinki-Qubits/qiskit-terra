@@ -21,4 +21,4 @@ jobs:
       - name: Install tox
         run: pip install -U tox
       - name: Run black and pylint
-        run: tox -elint
+        run: tox -elint-incr
