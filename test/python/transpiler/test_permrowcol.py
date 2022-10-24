@@ -240,6 +240,28 @@ class TestPermRowCol(QiskitTestCase):
         self.assertEqual(1, sum(parity_mat[1]))
         self.assertEqual(1, parity_mat[1, 2])
 
+    def test_eliminate_row_doesnt_change_already_eliminated_column(self):
+        """Test that eliminate_row doesn't mess up the already eliminated column"""
+        coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
+        coupling = CouplingMap(coupling_list)
+        permrowcol = PermRowCol(coupling)
+        parity_mat = np.array(
+            [
+                [1, 1, 1, 1, 1, 0],
+                [1, 0, 1, 0, 0, 0],
+                [1, 0, 0, 0, 1, 1],
+                [1, 1, 1, 0, 1, 0],
+                [1, 0, 1, 0, 1, 0],
+                [1, 0, 1, 0, 1, 1],
+            ]
+        )
+        root = 0
+        terminals = np.array([root, 1, 3])
+        permrowcol.eliminate_row(parity_mat, coupling, root, terminals)
+
+        self.assertEqual(1, sum(parity_mat[:, 3]))
+        self.assertEqual(1, parity_mat[0, 3])
+
 
 if __name__ == "__main__":
     unittest.main()
