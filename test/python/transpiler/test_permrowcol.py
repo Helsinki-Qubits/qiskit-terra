@@ -164,29 +164,6 @@ class TestPermRowCol(QiskitTestCase):
         self.assertEqual(1, sum(parity_mat[:, column]))
         self.assertEqual(1, parity_mat[0, column])
 
-    def test_eliminate_column_returns_only_legal_tuples(self):
-        """Test that eliminate_column returns only valid tuples, that is,
-        each of the resulting tuple is found in the symmetric coupling list"""
-        coupling_list = [(0, 2), (1, 2)]
-        coupling = CouplingMap(coupling_list)
-        permrowcol = PermRowCol(coupling)
-        parity_mat = np.array(
-            [
-                [1, 1, 0],
-                [0, 1, 0],
-                [0, 0, 1],
-            ]
-        )
-
-        root = 2
-        column = 1
-        terminals = np.array([root, 0, 1])
-        ret = permrowcol.eliminate_column(parity_mat, coupling, root, column, terminals)
-        coupling.make_symmetric()
-        edge_list = coupling.get_edges()
-
-        self.assertTrue(all(x in edge_list for x in ret))
-
     def test_eliminate_column_doesnt_return_invalid_tuples(self):
         """Test that eliminate column doesn't return any tuples that are not
         restricted by the coupling map"""
