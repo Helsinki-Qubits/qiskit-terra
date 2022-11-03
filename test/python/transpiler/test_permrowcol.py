@@ -118,16 +118,25 @@ class TestPermRowCol(QiskitTestCase):
 
         self.assertIsInstance(instance, list)
 
-    def test_eliminate_column_identity_matrix_doesnt_return_cnots(self):
+    def test_eliminate_column_empty_terminal_list_doesnt_return_cnots(self):
         """Test that eliminate column doesn't return any cnots when parity matrix is
         identity matrix"""
         coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
         coupling = CouplingMap(coupling_list)
         permrowcol = PermRowCol(coupling)
-        parity_mat = np.identity(6)
+        parity_mat = np.array(
+            [
+                [0, 1, 0, 1, 1, 0],
+                [1, 1, 1, 1, 1, 0],
+                [1, 0, 0, 0, 1, 1],
+                [1, 1, 1, 0, 1, 0],
+                [1, 0, 1, 0, 1, 0],
+                [1, 0, 1, 0, 1, 1],
+            ]
+        )
 
         root = 0
-        column = 1
+        column = 3
         terminals = np.array([])
         ret = permrowcol.eliminate_column(parity_mat, root, column, terminals)
 
