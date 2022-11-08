@@ -189,7 +189,7 @@ class TestPermRowCol(QiskitTestCase):
         self.assertEqual(1, parity_mat[0, column])
 
     def test_eliminate_column_doesnt_return_invalid_tuples(self):
-        """Test that eliminate column doesn't return any tuples that are not
+        """Test that eliminate column doesn't return any tuples that are
         restricted by the coupling map"""
         coupling_list = [(0, 2), (1, 2)]
         coupling = CouplingMap(coupling_list)
