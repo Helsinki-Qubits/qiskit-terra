@@ -257,7 +257,7 @@ class TestPermRowCol(QiskitTestCase):
         )
         root = 0
         terminals = np.array([root, 1, 3])
-        permrowcol.eliminate_row(parity_mat, coupling, root, terminals)
+        permrowcol.eliminate_row(parity_mat, root, terminals)
 
         self.assertEqual(1, sum(parity_mat[:, 3]))
         self.assertEqual(1, parity_mat[0, 3])
@@ -281,7 +281,7 @@ class TestPermRowCol(QiskitTestCase):
 
         root = 0
         terminals = np.array([])
-        ret = permrowcol.eliminate_row(parity_mat, coupling, root, terminals)
+        ret = permrowcol.eliminate_row(parity_mat, root, terminals)
         self.assertEqual(ret, [])
 
 
