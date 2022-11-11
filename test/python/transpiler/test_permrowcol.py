@@ -191,23 +191,27 @@ class TestPermRowCol(QiskitTestCase):
     def test_eliminate_column_doesnt_return_invalid_tuples(self):
         """Test that eliminate column doesn't return any tuples that are
         restricted by the coupling map"""
-        coupling_list = [(0, 2), (1, 2)]
+        coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
         coupling = CouplingMap(coupling_list)
         permrowcol = PermRowCol(coupling)
         parity_mat = np.array(
             [
-                [1, 1, 0],
-                [0, 1, 0],
-                [0, 0, 1],
+                [0, 1, 0, 1, 1, 0],
+                [1, 1, 1, 1, 1, 0],
+                [1, 0, 0, 0, 1, 1],
+                [1, 1, 1, 0, 1, 0],
+                [1, 0, 1, 0, 1, 0],
+                [1, 0, 1, 0, 1, 1],
             ]
         )
 
-        root = 0
-        column = 1
-        terminals = np.array([root, 1])
+        root = 1
+        column = 2
+        terminals = np.array([root, 3, 4, 5])
         ret = permrowcol.eliminate_column(parity_mat, root, column, terminals)
 
-        self.assertTrue((1, 0) not in ret)
+        self.assertTrue((2, 3) not in ret)
+        self.assertTrue((2, 4) not in ret)
 
     def test_eliminate_row_returns_list(self):
         """Test the output type of eliminate_row"""
