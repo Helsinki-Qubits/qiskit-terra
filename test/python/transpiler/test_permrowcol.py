@@ -8,6 +8,7 @@ from qiskit.test import QiskitTestCase
 from qiskit.transpiler.synthesis.permrowcol import PermRowCol
 from qiskit import QuantumCircuit
 from qiskit.transpiler import CouplingMap
+from qiskit.transpiler.synthesis.graph_utils import noncutting_vertices
 
 
 class TestPermRowCol(QiskitTestCase):
@@ -118,27 +119,24 @@ class TestPermRowCol(QiskitTestCase):
 
         self.assertIsInstance(instance, list)
 
-    def test_eliminate_column_empty_terminal_list_doesnt_return_cnots(self):
+    def test_eliminate_column_identity_column(self):
         """Test that eliminate column doesn't return any cnots when the given
         terminal list is empty"""
         coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
+
         coupling = CouplingMap(coupling_list)
         permrowcol = PermRowCol(coupling)
-        parity_mat = np.array(
-            [
-                [0, 1, 0, 1, 1, 0],
-                [1, 1, 1, 1, 1, 0],
-                [1, 0, 0, 0, 1, 1],
-                [1, 1, 1, 0, 1, 0],
-                [1, 0, 1, 0, 1, 0],
-                [1, 0, 1, 0, 1, 1],
-            ]
-        )
+        qubit_alloc = [-1] * len(permrowcol._graph.node_indexes())
+        parity_mat = np.identity(6)
+        np.random.shuffle(parity_mat)
+        n_vertices = noncutting_vertices(coupling)
+        row = permrowcol.choose_row(n_vertices, parity_mat)
 
-        root = 0
-        column = 3
-        terminals = np.array([])
-        ret = permrowcol.eliminate_column(parity_mat, root, column, terminals)
+        cols = [i for i in range(len(qubit_alloc)) if qubit_alloc[i] == -1]
+        column = permrowcol.choose_column(parity_mat, cols, row)
+        nodes = [node for node in permrowcol._graph.node_indexes() if parity_mat[node, column] == 1]
+
+        ret = permrowcol.eliminate_column(parity_mat, row, column, nodes)
 
         self.assertEqual(ret, [])
 
