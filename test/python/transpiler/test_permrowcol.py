@@ -284,6 +284,29 @@ class TestPermRowCol(QiskitTestCase):
         ret = permrowcol.eliminate_row(parity_mat, root, terminals)
         self.assertEqual(ret, [])
 
+    def test_eliminate_row_doesnt_return_invalid_tuples(self):
+        """Test that eliminate_row doesn't return any tuples that are
+        restricted by the coupling map"""
+        coupling_list = [(1, 4), (2, 5), (3, 4), (4, 5)]
+        coupling = CouplingMap(coupling_list)
+        permrowcol = PermRowCol(coupling)
+        parity_mat = np.array(
+            [
+                [0, 0, 0, 1, 0, 0],
+                [1, 0, 1, 0, 0, 0],
+                [1, 0, 0, 0, 1, 1],
+                [0, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 0],
+                [0, 0, 0, 0, 0, 1],
+            ]
+        )
+        root = 1
+        terminals = np.array([1, 2, 4, 5])
+        ret = permrowcol.eliminate_row(parity_mat, root, terminals)
+
+        self.assertTrue((5, 1) not in ret)
+        self.assertTrue((2, 1) not in ret)
+
 
 if __name__ == "__main__":
     unittest.main()
