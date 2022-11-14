@@ -8,6 +8,7 @@ from qiskit.test import QiskitTestCase
 from qiskit.transpiler.synthesis.permrowcol import PermRowCol
 from qiskit import QuantumCircuit
 from qiskit.transpiler import CouplingMap
+from qiskit.transpiler.synthesis.graph_utils import noncutting_vertices
 
 
 class TestPermRowCol(QiskitTestCase):
@@ -262,26 +263,21 @@ class TestPermRowCol(QiskitTestCase):
         self.assertEqual(1, sum(parity_mat[:, 3]))
         self.assertEqual(1, parity_mat[0, 3])
 
-    def test_eliminate_row_empty_terminal_list_doesnt_return_cnots(self):
+    def test_eliminate_row_identity_column(self):
         """Test that eliminate row doesn't return any cnots when the given
         terminal list is empty"""
         coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
         coupling = CouplingMap(coupling_list)
         permrowcol = PermRowCol(coupling)
-        parity_mat = np.array(
-            [
-                [0, 1, 0, 1, 1, 0],
-                [1, 1, 1, 1, 1, 0],
-                [1, 0, 0, 0, 1, 1],
-                [1, 1, 1, 0, 1, 0],
-                [1, 0, 1, 0, 1, 0],
-                [1, 0, 1, 0, 1, 1],
-            ]
-        )
 
-        root = 0
-        terminals = np.array([])
-        ret = permrowcol.eliminate_row(parity_mat, root, terminals)
+        parity_mat = np.identity(6)
+        np.random.shuffle(parity_mat)
+
+        n_vertices = noncutting_vertices(coupling)
+        row = permrowcol.choose_row(n_vertices, parity_mat)
+        terminals = [row]
+
+        ret = permrowcol.eliminate_row(parity_mat, row, terminals)
         self.assertEqual(ret, [])
 
     def test_eliminate_row_doesnt_return_invalid_tuples(self):
