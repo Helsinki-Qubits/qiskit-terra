@@ -264,8 +264,7 @@ class TestPermRowCol(QiskitTestCase):
         self.assertEqual(1, parity_mat[0, 3])
 
     def test_eliminate_row_identity_column(self):
-        """Test that eliminate row doesn't return any cnots when the given
-        terminal list is empty"""
+        """Test that eliminate row doesn't return any cnots when parity matrix is permutation of identity matrix"""
         coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
         coupling = CouplingMap(coupling_list)
         permrowcol = PermRowCol(coupling)
