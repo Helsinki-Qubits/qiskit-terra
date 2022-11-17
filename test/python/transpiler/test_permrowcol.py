@@ -21,7 +21,8 @@ class TestPermRowCol(QiskitTestCase):
 
         instance = permrowcol.perm_row_col(parity_mat, coupling)
 
-        self.assertIsInstance(instance, QuantumCircuit)
+        self.assertIsInstance(instance[0], QuantumCircuit)
+        self.assertIsInstance(instance[1], QuantumCircuit)
 
     def test_choose_row_returns_np_int64(self):
         """Test the output type of choose_row"""

@@ -43,7 +43,7 @@ class PermRowCol:
         """
         # TODO
         circuit = QuantumCircuit(QuantumRegister(0))
-        return circuit
+        return circuit, circuit
 
     def choose_row(self, vertices: np.ndarray, parity_mat: np.ndarray) -> np.int64:
         """Choose row to eliminate and return the index.
