@@ -60,6 +60,18 @@ def postorder_traversal(tree: rx.PyGraph, node: int, edges: list, parent: int = 
     if parent != None:
         edges.append((parent, node))
 
+# Ariannes suggestion:
+
+#def postorder_traversal(tree: rx.PyGraph, root: int, visited=[]: list(int)) -> list(pair(int)):
+#	edges = []
+#	visited += [root] # Visited is only to avoid back links. You can also give a subgraph, but that was more complicated in pyGraph.
+#	for neighbor in sorted(tree.neighbors(root)):
+#		if neighbor not in visited:
+#			# Note that because the tree is asumed to be a tree, you don't need to give the other neighbors as visited.
+#			edges.extend(postorder_traversal(tree, neighbor, visited))
+#			edges.append((root, neighbor))
+#	return edges
+
 
 def preorder_traversal(tree: rx.PyGraph, node: int, edges: list, parent: int = None):
     """Preorder traversal of the edges of the given tree. Traversed edges are saved as tuples,
