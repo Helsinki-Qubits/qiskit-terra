@@ -40,7 +40,7 @@ class PermRowColSynthesis(LinearFunctionsSynthesis):
         """
         for node in dag.named_nodes("linear_function"):
             parity_mat = node.op.linear
-            permrowcol = PermRowCol(self.coupling_map)
+            permrowcol = PermRowCol(self._coupling_map)
             cnots, permutation = permrowcol.perm_row_col(parity_mat)
 
             try:
