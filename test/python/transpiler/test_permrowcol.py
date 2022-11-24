@@ -16,6 +16,7 @@ from qiskit.visualization import dag_drawer
 from qiskit.dagcircuit.dagcircuit import DAGCircuit
 
 from qiskit.circuit.library.generalized_gates import linear_function
+from qiskit.transpiler.synthesis.matrix_utils import build_random_parity_matrix
 
 
 class TestPermRowCol(QiskitTestCase):
@@ -515,8 +516,6 @@ class TestPermRowCol(QiskitTestCase):
             ]
         )
 
-
-
         correct_permutation_matrix = np.array(
             [
                 [0, 0, 0, 1, 0, 0],
@@ -527,7 +526,6 @@ class TestPermRowCol(QiskitTestCase):
                 [1, 0, 0, 0, 0, 0],
             ]
         )
-
 
         instance = permrowcol.perm_row_col(parity_mat)
         mat = np.array(LinearFunction(instance[0]).params[0]).astype(int)
@@ -536,69 +534,18 @@ class TestPermRowCol(QiskitTestCase):
 
     def test_common_case_with_complete_graph(self):
         """Test common_case with complete graph"""
-        coupling_list = [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5),
-                         (1, 0), (1, 2), (1, 3), (1, 4), (1, 5),
-                         (2, 0), (2, 1), (2, 3), (2, 4), (2, 5),
-                         (3, 0), (3, 1), (3, 2), (3, 4), (3, 5),
-                         (4, 0), (4, 1), (4, 2), (4, 3), (4, 5),
-                         (5, 0), (5, 1), (5, 2), (5, 3), (5, 4),
-                         ]
+        n = 6
+        parity_mat = build_random_parity_matrix(42, n, 60)
+        coupling_list = [(i, j) for i in range(n) for j in range(n) if i != j]
+        original_parity_map = parity_mat.copy()
         coupling = CouplingMap(coupling_list)
         permrowcol = PermRowCol(coupling)
-        parity_mat = np.array(
-            [
-                [0, 1, 0, 1, 1, 0],
-                [1, 1, 1, 1, 1, 0],
-                [1, 0, 0, 0, 1, 1],
-                [1, 1, 1, 0, 1, 0],
-                [1, 0, 1, 0, 1, 0],
-                [1, 0, 1, 0, 1, 1],
-            ]
-        )
+        circuit, perm = permrowcol.perm_row_col(parity_mat)
+        circuit_matrix = LinearFunction(circuit).linear.astype(int)
+        t_circuit_matrix = np.transpose(circuit_matrix)
+        instance = np.matmul(t_circuit_matrix, parity_mat)
+        self.assertEqual(np.array_equal(instance, original_parity_map), True)
 
-
-
-        correct_permutation_matrix = np.array(
-            [
-                [0, 0, 0, 1, 0, 0],
-                [0, 0, 1, 0, 0, 0],
-                [0, 0, 0, 0, 0, 1],
-                [0, 1, 0, 0, 0, 0],
-                [0, 0, 0, 0, 1, 0],
-                [1, 0, 0, 0, 0, 0],
-            ]
-        )
-
-
-        #instance = permrowcol.perm_row_col(parity_mat)
-        # print(parity_mat)
-        # print(instance[0].circuit_to_dag)
-        # self.assertEqual(np.array_equal(parity_mat, correct_permutation_matrix), True)
-        # self.assertEqual(np.array_equal(parity_mat, correct_permutation_matrix), True)
-        cnots, permutation = permrowcol.perm_row_col(parity_mat)
-        print(LinearFunction(cnots))
-        print("cnots; ")
-        print(cnots)
-        print("mat; ")
-        print(parity_mat)
-
-
-        mat = np.array(LinearFunction(cnots).params[0]).astype(int)
-        print(mat)
-
-        #print(np.matmul(parity_mat,mat))
-
-
-
-        # q = QuantumRegister(3, 'q')
-        #     c = ClassicalRegister(3, 'c')
-        #     circ = QuantumCircuit(q, c)
-        #     circ.h(q[0])
-        #     circ.cx(q[0], q[1])
-        #     circ.measure(q[0], c[0])
-        #     circ.rz(0.5, q[1]).c_if(c, 2)
-        #     dag = circuit_to_dag(circ)
-        #     dag_drawer(dag)
 
 if __name__ == "__main__":
     unittest.main()
