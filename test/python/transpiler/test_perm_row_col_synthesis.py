@@ -6,7 +6,6 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 import numpy as np
-from qiskit.circuit.quantumregister import QuantumRegister
 
 from qiskit.test import QiskitTestCase
 from qiskit.transpiler.passes.synthesis.perm_row_col_synthesis import PermRowColSynthesis
@@ -92,13 +91,10 @@ class TestPermRowColSynthesis(QiskitTestCase):
 
         ret_circ = dag_to_circuit(instance)
 
-        cnots = []
-        for d in ret_circ.data:
-            if d.operation.name == "cx":
-                cnots.append(d)
+        # extract the cnot circuit from the output
+        circ2 = QuantumCircuit.from_instructions(ret_circ.data[:13], qubits=ret_circ.qubits)
 
-        ret_cnots = QuantumCircuit.from_instructions(cnots)
-
+        self.assertTrue((LinearFunction(circ).linear == LinearFunction(circ2).linear).all())
         self.assertTrue(mock_perm_row_col.called)
 
 
