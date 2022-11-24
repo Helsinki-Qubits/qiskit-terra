@@ -48,9 +48,9 @@ class TestGraphUtils(QiskitTestCase):
         tree = rx.PyGraph()
         tree.add_nodes_from([0, 1, 2, 3, 4])
         tree.add_edges_from([(0, 1, 1), (1, 2, 1), (1, 3, 1), (1, 4, 1)])
-        result = []
+        visited = []
 
-        postorder_traversal(tree, 0, result)
+        result = postorder_traversal(tree, 0, visited)
         expected = [(1, 2), (1, 3), (1, 4), (0, 1)]
 
         self.assertEqual(result, expected)
@@ -61,8 +61,8 @@ class TestGraphUtils(QiskitTestCase):
         tree = rx.PyGraph()
         tree.add_nodes_from([0, 1, 2, 3])
         tree.add_edges_from([(0, 1, 1), (1, 2, 1), (1, 3, 1)])
-        result = []
-        postorder_traversal(tree, 5, result)
+        visited = []
+        result = postorder_traversal(tree, 5, visited)
 
         self.assertEqual(result, [])
 
@@ -71,10 +71,24 @@ class TestGraphUtils(QiskitTestCase):
         tree doesn't have any edges"""
         tree = rx.PyGraph()
         tree.add_nodes_from([0])
-        result = []
-        postorder_traversal(tree, 0, result)
+        visited = []
+        result = postorder_traversal(tree, 0, visited)
 
         self.assertEqual(result, [])
+
+    def test_postorder_traversal_returns_correct_edges_if_visited_list_is_not_empty(self):
+        """Test that postorder_traversal returns correct edge list when some nodes have laready been visited"""
+        tree = rx.PyGraph()
+        tree.add_nodes_from([0, 1, 2, 3, 4, 5, 6])
+        tree.add_edges_from(
+            [(0, 1, 1), (1, 2, 1), (1, 3, 1), (1, 4, 1), (2, 5, 1), (4, 6, 1), (2, 3, 1)]
+        )
+        visited = [0, 1]
+
+        result = postorder_traversal(tree, 2, visited)
+        expected = [(2, 3), (2, 5)]
+
+        self.assertEqual(result, expected)
 
     def test_preorder_traversal_returns_correct_edges(self):
         """Test that preorder_traversal returns correct edge list"""
