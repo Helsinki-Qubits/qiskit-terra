@@ -14,7 +14,6 @@ from qiskit.transpiler.synthesis.matrix_utils import build_random_parity_matrix
 from qiskit.providers.fake_provider import FakeTenerife
 
 
-
 class TestPermRowCol(QiskitTestCase):
     """Test PermRowCol"""
 
@@ -514,6 +513,8 @@ class TestPermRowCol(QiskitTestCase):
 
     def test_add_cnot_adds_four_hadamard_gates_if_cnot_is_in_wrong_direction(self):
         """Test add one cnot to wrong direction ads four cnots"""
+
+        print("Start test_add_cnot_adds_four_hadamard_gates_if_cnot_is_in_wrong_direction")
         coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
         coupling = CouplingMap(coupling_list)
         n = 6
@@ -522,30 +523,33 @@ class TestPermRowCol(QiskitTestCase):
         circuit = QuantumCircuit(n)
         permrowcol = PermRowCol(coupling)
         circuit, perm = permrowcol.perm_row_col(parity_mat)
-        #permrowcol._add_cnot((1, 0), circuit)
-       # print(circuit)
+        # permrowcol._add_cnot((1, 0), circuit)
+        # print(circuit)
 
         for index, instruction in enumerate(circuit):
 
-        #   self.assertEqual(instruction, circuit[index])
-            if instruction[0].name == 'cx':
+            #   self.assertEqual(instruction, circuit[index])
+            if instruction[0].name == "cx":
                 qubit_0 = instruction[1][0]
                 qubit_1 = instruction[1][1]
-        #        if (qubit_0, qubit_1) not in coupling_list:
-        #            self.assertEqual(circuit[index-2][0].name, 'h')
-        #            self.assertEqual(circuit[index-2][1][0], qubit_0)
-        #            self.assertEqual(circuit[index-1][0].name, 'h')
-        #            self.assertEqual(circuit[index-1][1][0], qubit_1)
-        #            self.assertEqual(circuit[index+1][0].name, 'h')
-        #            self.assertEqual(circuit[index+1][1][0], qubit_0)
-        #            self.assertEqual(circuit[index+2][0].name, 'h')
-        #            self.assertEqual(circuit[index+2][1][0], qubit_1)
+                # print(qubit_0.index)
+                # print(qubit_1.index)
+                if (qubit_0.index, qubit_1.index) not in coupling_list:
+                    # print(qubit_0.index)
+                    # print(qubit_1.index)
+                    self.assertEqual(circuit[index - 2][0].name, "h")
+                    self.assertEqual(circuit[index - 2][1][0], qubit_0)
+                    self.assertEqual(circuit[index - 1][0].name, "h")
+                    self.assertEqual(circuit[index - 1][1][0], qubit_1)
+                    self.assertEqual(circuit[index + 1][0].name, "h")
+                    self.assertEqual(circuit[index + 1][1][0], qubit_0)
+                    self.assertEqual(circuit[index + 2][0].name, "h")
+                    self.assertEqual(circuit[index + 2][1][0], qubit_1)
 
-
-            # if instruction[0].name == 'cx' and instruction[1].
-            #    circuit[index-2][0].name == 'h'
-        #print(gates)
-        #self.assertEqual(gates, correct)
+        # if instruction[0].name == 'cx' and instruction[1].
+        #    circuit[index-2][0].name == 'h'
+        # print(gates)
+        # self.assertEqual(gates, correct)
         # self.assertEqual(np.array_equal(instance, original_parity_map), True)
 
         # parity mat =random parity pat

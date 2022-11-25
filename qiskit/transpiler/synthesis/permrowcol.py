@@ -258,11 +258,9 @@ class PermRowCol:
 
         """
         edges = self._coupling_map.get_edges()
-        print("edges:", edges)
-        if (
-            edge not in edges
-        ):  # and (edge[1],edge[0]) in self._coupling_map.get_edges():
-            print("add hadamard", edge)
+
+        if edge not in edges:  # and (edge[1],edge[0]) in self._coupling_map.get_edges():
+            # print("add hadamard", edge)
             circuit.h(edge[0])
             circuit.h(edge[1])
             circuit.cx(edge[0], edge[1])
@@ -270,5 +268,5 @@ class PermRowCol:
             circuit.h(edge[1])
 
         elif edge in edges:
-            print("allowed:", edge)
+            # print("allowed:", edge)
             circuit.cx(edge[0], edge[1])
