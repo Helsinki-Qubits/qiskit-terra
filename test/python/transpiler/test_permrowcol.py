@@ -2,22 +2,15 @@
 
 import unittest
 import numpy as np
-import retworkx as rx
 
 from qiskit.test import QiskitTestCase
 from qiskit.transpiler.synthesis.permrowcol import PermRowCol
 from qiskit.circuit.library import LinearFunction
-from qiskit import QuantumCircuit, QuantumRegister
+from qiskit import QuantumCircuit
 from qiskit.transpiler import CouplingMap
 from qiskit.circuit.library.generalized_gates.permutation import Permutation
-from qiskit.converters import circuit_to_dag
-
-from qiskit.visualization import dag_drawer
-from qiskit.dagcircuit.dagcircuit import DAGCircuit
-
-from qiskit.circuit.library.generalized_gates import linear_function
 from qiskit.transpiler.synthesis.matrix_utils import build_random_parity_matrix
-from qiskit.providers.fake_provider import FakeManilaV2
+
 
 
 class TestPermRowCol(QiskitTestCase):
@@ -111,20 +104,6 @@ class TestPermRowCol(QiskitTestCase):
 
         instance = permrowcol.perm_row_col(parity_mat)[0]
         self.assertEqual(len(instance.data), 0)
-
-    def test_perm_row_col_returns_valid_output_with_a_common_case(self):
-        """Test the output of perm_row_col for correctness"""
-        backend = FakeManilaV2()
-        coupling_map = backend.coupling_map
-        coupling = CouplingMap(coupling_map)
-        permrowcol = PermRowCol(coupling)
-        parity_mat = build_random_parity_matrix(42, 5, 60)
-        original_parity_map = parity_mat.copy()
-        circuit, perm = permrowcol.perm_row_col(parity_mat)
-        circuit_matrix = LinearFunction(circuit).linear.astype(int)
-        t_circuit_matrix = np.transpose(circuit_matrix)
-        instance = np.matmul(t_circuit_matrix, parity_mat)
-        self.assertEqual(np.array_equal(instance, original_parity_map), True)
 
     def test_choose_row_returns_np_int64(self):
         """Test the output type of choose_row"""
@@ -544,7 +523,6 @@ class TestPermRowCol(QiskitTestCase):
 
         instance = permrowcol.perm_row_col(parity_mat)
         mat = np.array(LinearFunction(instance[0]).params[0]).astype(int)
-        print(mat)
         self.assertEqual(np.array_equal(parity_mat, correct_permutation_matrix), True)
 
     def test_common_case_with_complete_graph(self):
@@ -556,9 +534,8 @@ class TestPermRowCol(QiskitTestCase):
         coupling = CouplingMap(coupling_list)
         permrowcol = PermRowCol(coupling)
         circuit, perm = permrowcol.perm_row_col(parity_mat)
-        circuit_matrix = LinearFunction(circuit).linear.astype(int)
-        t_circuit_matrix = np.transpose(circuit_matrix)
-        instance = np.matmul(t_circuit_matrix, parity_mat)
+        circuit_matrix = LinearFunction(circuit).linear.astype(int).T
+        instance = np.matmul(circuit_matrix, parity_mat)
         self.assertEqual(np.array_equal(instance, original_parity_map), True)
 
 
