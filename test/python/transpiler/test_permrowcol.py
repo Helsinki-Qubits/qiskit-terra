@@ -10,6 +10,8 @@ from qiskit.circuit.library import LinearFunction
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.transpiler import CouplingMap
 from qiskit.circuit.library.generalized_gates.permutation import Permutation
+from qiskit.transpiler.synthesis.matrix_utils import build_random_parity_matrix
+from qiskit.providers.fake_provider import FakeManilaV2
 
 
 class TestPermRowCol(QiskitTestCase):
@@ -520,8 +522,39 @@ class TestPermRowCol(QiskitTestCase):
             ]
         )
 
-        instance = permrowcol.perm_row_col(parity_mat)
+        circuit, perm = permrowcol.perm_row_col(parity_mat)
+
         self.assertEqual(np.array_equal(parity_mat, correct_permutation_matrix), True)
+
+    def test_no_hadamart_gates_added_with_complete_graph(self):
+        """Test that no hadamart gates are added if graph has bidirectional edges"""
+        n = 6
+        parity_mat = build_random_parity_matrix(42, n, 60)
+        coupling_list = [(i, j) for i in range(n) for j in range(n) if i != j]
+        coupling = CouplingMap(coupling_list)
+        permrowcol = PermRowCol(coupling)
+        circuit, perm = permrowcol.perm_row_col(parity_mat)
+        h_gates = []
+        for i in circuit:
+            if i[0].name == 'h':
+                h_gates.append(i)
+        self.assertEqual(len(h_gates),0)
+
+    def test_add_cdot_ads_four_hadamart_gates_if_cnot_is_in_wrong_direction(self):
+        """Test add one cnot to wrong direction ads four cnots"""
+        n = 6
+        parity_mat = build_random_parity_matrix(42, n, 60)
+        coupling_list = coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
+        coupling = CouplingMap(coupling_list)
+        circuit = QuantumCircuit(n)
+        permrowcol = PermRowCol(coupling)
+        permrowcol._add_cnot((1,0),circuit)
+        print(circuit)
+        gates = []
+        correct = ['h','h','cx','h','h']
+        for i in circuit:
+            gates.append(i[0].name)
+        self.assertEqual(len(gates),len(correct))
 
 
 if __name__ == "__main__":
