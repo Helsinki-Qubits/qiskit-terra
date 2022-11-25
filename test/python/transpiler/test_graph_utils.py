@@ -103,10 +103,9 @@ class TestGraphUtils(QiskitTestCase):
         tree = rx.PyGraph()
         tree.add_nodes_from([0, 1, 2, 3, 4])
         tree.add_edges_from([(0, 1, 1), (1, 2, 1), (1, 3, 1), (1, 4, 1)])
-        result = []
         expected = [(0, 1), (1, 2), (1, 3), (1, 4)]
 
-        preorder_traversal(tree, 0, result)
+        result = preorder_traversal(tree, 0)
 
         self.assertEqual(result, expected)
 
@@ -116,9 +115,8 @@ class TestGraphUtils(QiskitTestCase):
         tree = rx.PyGraph()
         tree.add_nodes_from([0, 1, 2, 3])
         tree.add_edges_from([(0, 1, 1), (1, 2, 1), (1, 3, 1)])
-        result = []
 
-        preorder_traversal(tree, 5, result)
+        result = preorder_traversal(tree, 5)
 
         self.assertEqual(result, [])
 
@@ -127,9 +125,8 @@ class TestGraphUtils(QiskitTestCase):
         tree doesn't have any edges"""
         tree = rx.PyGraph()
         tree.add_nodes_from([0])
-        result = []
 
-        preorder_traversal(tree, 0, result)
+        result = preorder_traversal(tree, 0)
 
         self.assertEqual(result, [])
 

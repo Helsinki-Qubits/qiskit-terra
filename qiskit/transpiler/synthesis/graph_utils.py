@@ -39,63 +39,53 @@ def noncutting_vertices(pygraph: rx.PyGraph) -> np.ndarray:
     return noncutting
 
 
-# Susanna's code:
-
-# def postorder_traversal(tree: rx.PyGraph, node: int, edges: list, parent: int = None):
-#    """Traverse the given tree in postorder. Traversed edges are saved as tuples.
-#    The first element is the parent and second the child.
-#    Children are visited in increasing order.
-#
-#    Args:
-#        tree (rx.PyGraph): tree to traverse
-#        node (int): root node
-#        edges (list): edge list
-#        parent (int, optional): parent node. Defaults to None.
-#    """
-#    if node == None:
-#        return
-#    for n in sorted(tree.neighbors(node)):
-#        if n == parent:
-#            continue
-#        postorder_traversal(tree, n, edges, node)
-#    if parent != None:
-#        edges.append((parent, node))
-
-# Ariannes suggestion:
-
-
 def postorder_traversal(tree: rx.PyGraph, root: int = None, visited: list = None) -> list:
+    """Traverse the given tree in postorder. Traversed edges are saved as tuples.
+    The first element is the parent and second the child.
+    Children are visited in increasing order.
+
+    Args:
+        tree (rx.PyGraph): tree to traverse
+        root (int): root node
+        visited (list): list of visited nodes
+
+    Returns:
+        edges (list): edge list
+    """
     edges = []
     if visited == None:
         visited = []
     if root != None:
-        visited.append(
-            root
-        )  # Visited is only to avoid back links. You can also give a subgraph, but that was more complicated in pyGraph.
+        visited.append(root)
         for neighbor in sorted(tree.neighbors(root)):
             if neighbor not in visited:
-                # Note that because the tree is asumed to be a tree, you don't need to give the other neighbors as visited.
+                # Travels to the next node before adding the edge.
                 edges.extend(postorder_traversal(tree, neighbor, visited))
                 edges.append((root, neighbor))
     return edges
 
 
-def preorder_traversal(tree: rx.PyGraph, node: int, edges: list, parent: int = None):
+def preorder_traversal(tree: rx.PyGraph, root: int = None, visited: list = None) -> list:
     """Preorder traversal of the edges of the given tree. Traversed edges are saved as tuples,
     where the first element is the parent and second the child. Children are visited in
     increasing order.
 
     Args:
         tree (rx.PyGraph): tree to traverse
-        node (int): root node
-        edges (list): list of edges
-        parent (int, optional): parent node. Defaults to None.
+        root (int): root node
+        visited (list): list of visited nodes
+
+    Returns:
+        edges (list): edge list
     """
-    if node == None:
-        return
-    if parent != None:
-        edges.append((parent, node))
-    for n in sorted(tree.neighbors(node)):
-        if n == parent:
-            continue
-        preorder_traversal(tree, n, edges, node)
+    edges = []
+    if visited == None:
+        visited = []
+    if root != None:
+        visited.append(root)
+        for neighbor in sorted(tree.neighbors(root)):
+            if neighbor not in visited:
+                # Adds edge before traveling to the next node.
+                edges.append((root, neighbor))
+                edges.extend(postorder_traversal(tree, neighbor, visited))
+    return edges

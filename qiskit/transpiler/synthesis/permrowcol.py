@@ -191,8 +191,7 @@ class PermRowCol:
         C = []
         tree = rx.steiner_tree(self._graph, terminals, weight_fn=lambda x: 1)
 
-        pre_edges = []
-        preorder_traversal(tree, root, pre_edges)
+        pre_edges = preorder_traversal(tree, root)
         post_edges = postorder_traversal(tree, root)
 
         for edge in pre_edges:
