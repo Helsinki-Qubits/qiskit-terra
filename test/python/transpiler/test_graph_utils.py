@@ -48,9 +48,8 @@ class TestGraphUtils(QiskitTestCase):
         tree = rx.PyGraph()
         tree.add_nodes_from([0, 1, 2, 3, 4])
         tree.add_edges_from([(0, 1, 1), (1, 2, 1), (1, 3, 1), (1, 4, 1)])
-        visited = []
 
-        result = postorder_traversal(tree, 0, visited)
+        result = postorder_traversal(tree, 0)
         expected = [(1, 2), (1, 3), (1, 4), (0, 1)]
 
         self.assertEqual(result, expected)
@@ -61,8 +60,8 @@ class TestGraphUtils(QiskitTestCase):
         tree = rx.PyGraph()
         tree.add_nodes_from([0, 1, 2, 3])
         tree.add_edges_from([(0, 1, 1), (1, 2, 1), (1, 3, 1)])
-        visited = []
-        result = postorder_traversal(tree, 5, visited)
+
+        result = postorder_traversal(tree, 5)
 
         self.assertEqual(result, [])
 
@@ -71,8 +70,8 @@ class TestGraphUtils(QiskitTestCase):
         tree doesn't have any edges"""
         tree = rx.PyGraph()
         tree.add_nodes_from([0])
-        visited = []
-        result = postorder_traversal(tree, 0, visited)
+
+        result = postorder_traversal(tree, 0)
 
         self.assertEqual(result, [])
 
@@ -87,6 +86,15 @@ class TestGraphUtils(QiskitTestCase):
 
         result = postorder_traversal(tree, 2, visited)
         expected = [(2, 3), (2, 5)]
+
+        self.assertEqual(result, expected)
+
+    def test_postorder_traversal_returns_an_empty_list_if_root_is_empty(self):
+        """"""
+        tree = rx.PyGraph()
+
+        result = postorder_traversal(tree)
+        expected = []
 
         self.assertEqual(result, expected)
 
