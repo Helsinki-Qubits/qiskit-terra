@@ -57,15 +57,15 @@ class PermRowCol:
             column = self.choose_column(parity_mat, cols, row)
             nodes = self._get_nodes(parity_mat, column)
             for edge in self._eliminate_column(parity_mat, row, column, nodes):
-                #circuit.cx(edge[0], edge[1])
-                self._add_cnot(edge,circuit)
+                # circuit.cx(edge[0], edge[1])
+                self._add_cnot(edge, circuit)
 
             if sum(parity_mat[row]) > 1:
                 nodes = self._get_nodes_for_eliminate_row(parity_mat, column, row)
 
                 for edge in self._eliminate_row(parity_mat, row, nodes):
-                    #circuit.cx(edge[0], edge[1])  # Adds a CNOT to the circuit
-                    self._add_cnot(edge,circuit)
+                    # circuit.cx(edge[0], edge[1])  # Adds a CNOT to the circuit
+                    self._add_cnot(edge, circuit)
 
             qubit_alloc[column] = row
 
@@ -245,11 +245,9 @@ class PermRowCol:
 
         return nodes
 
-    def _add_cnot(
-        self, edge: tuple, circuit: QuantumCircuit
-    ) -> list:
+    def _add_cnot(self, edge: tuple, circuit: QuantumCircuit) -> list:
 
-        """check if cnot is in allowed direction and add Hadamart gates if necessary
+        """check if cnot is in allowed direction and add Hadamard gates if necessary
 
         Args:
             edge (tuple): tuple representing qubits between cnot.
@@ -259,17 +257,18 @@ class PermRowCol:
         Returns:
 
         """
-        if edge not in self._coupling_map.get_edges() and (edge[1],edge[0]) in self._coupling_map.get_edges():
+        edges = self._coupling_map.get_edges()
+        print("edges:", edges)
+        if (
+            edge not in edges
+        ):  # and (edge[1],edge[0]) in self._coupling_map.get_edges():
+            print("add hadamard", edge)
             circuit.h(edge[0])
             circuit.h(edge[1])
-            circuit.cx(edge[0],edge[1])
+            circuit.cx(edge[0], edge[1])
             circuit.h(edge[0])
             circuit.h(edge[1])
 
-        # if edge not in self._coupling_map.get_edges() and (edge[1],edge[0]) in self._coupling_map.get_edges():
-        #     circuit.cx(edge[0],edge[1])
-
-        else:
-            circuit.cx(edge[0],edge[1])
-
-
+        elif edge in edges:
+            print("allowed:", edge)
+            circuit.cx(edge[0], edge[1])
