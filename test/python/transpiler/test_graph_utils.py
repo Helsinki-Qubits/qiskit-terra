@@ -76,7 +76,7 @@ class TestGraphUtils(QiskitTestCase):
         self.assertEqual(result, [])
 
     def test_postorder_traversal_returns_correct_edges_if_visited_list_is_not_empty(self):
-        """Test that postorder_traversal returns correct edge list when some nodes have laready been visited"""
+        """Test that postorder_traversal returns correct edge list when some nodes have already been visited"""
         tree = rx.PyGraph()
         tree.add_nodes_from([0, 1, 2, 3, 4, 5, 6])
         tree.add_edges_from(
