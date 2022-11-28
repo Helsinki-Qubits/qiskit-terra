@@ -6,12 +6,10 @@ import retworkx as rx
 
 from qiskit.test import QiskitTestCase
 from qiskit.transpiler.synthesis.permrowcol import PermRowCol
-from qiskit.circuit.library import LinearFunction
-from qiskit import QuantumCircuit, QuantumRegister
+from qiskit import QuantumCircuit
 from qiskit.transpiler import CouplingMap
 from qiskit.circuit.library.generalized_gates.permutation import Permutation
 from qiskit.transpiler.synthesis.matrix_utils import build_random_parity_matrix
-from qiskit.providers.fake_provider import FakeTenerife
 
 
 class TestPermRowCol(QiskitTestCase):
@@ -509,12 +507,9 @@ class TestPermRowCol(QiskitTestCase):
                 h_gates.append(i)
         self.assertEqual(len(h_gates), 0)
 
-    # tox -epy38 -- -n test.python.transpiler.TestPermRowCol.test_add_cnot_adds_four_hadamard_gates_if_cnot_is_in_wrong_direction
-
     def test_add_cnot_adds_four_hadamard_gates_if_cnot_is_in_wrong_direction(self):
-        """Test add one cnot to wrong direction ads four cnots"""
+        """Test add one cnot to wrong direction adds four cnots"""
 
-        print("Start test_add_cnot_adds_four_hadamard_gates_if_cnot_is_in_wrong_direction")
         coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
         coupling = CouplingMap(coupling_list)
         n = 6
@@ -523,20 +518,12 @@ class TestPermRowCol(QiskitTestCase):
         circuit = QuantumCircuit(n)
         permrowcol = PermRowCol(coupling)
         circuit, perm = permrowcol.perm_row_col(parity_mat)
-        # permrowcol._add_cnot((1, 0), circuit)
-        # print(circuit)
 
         for index, instruction in enumerate(circuit):
-
-            #   self.assertEqual(instruction, circuit[index])
             if instruction[0].name == "cx":
                 qubit_0 = instruction[1][0]
                 qubit_1 = instruction[1][1]
-                # print(qubit_0.index)
-                # print(qubit_1.index)
                 if (qubit_0.index, qubit_1.index) not in coupling_list:
-                    # print(qubit_0.index)
-                    # print(qubit_1.index)
                     self.assertEqual(circuit[index - 2][0].name, "h")
                     self.assertEqual(circuit[index - 2][1][0], qubit_0)
                     self.assertEqual(circuit[index - 1][0].name, "h")
@@ -546,25 +533,6 @@ class TestPermRowCol(QiskitTestCase):
                     self.assertEqual(circuit[index + 2][0].name, "h")
                     self.assertEqual(circuit[index + 2][1][0], qubit_1)
 
-        # if instruction[0].name == 'cx' and instruction[1].
-        #    circuit[index-2][0].name == 'h'
-        # print(gates)
-        # self.assertEqual(gates, correct)
-        # self.assertEqual(np.array_equal(instance, original_parity_map), True)
-
-        # parity mat =random parity pat
-        # coupling = fakebackend coupling map
-        # circuit, perm = permrowcol.perm_row col()
-        # circuit_data = circuit.data
-        # in a loop:
-        # if circuit_data(i) = cx and not in coupling map
-        # selfassertequal(circuit_data(i-2)) = h and qubit = toinen coupling mapin nodeista
-        # selfassertequal(circuit_data(i-1)) = h -''-
-        # selfassertequal(circuit_data(i+1)) = h -''-
-        # selfassertequal(circuit_data(i+2)) = h -''-
-
-
-# QuantumCircuit.swap(qubit1, qubit2)
 
 if __name__ == "__main__":
     unittest.main()
