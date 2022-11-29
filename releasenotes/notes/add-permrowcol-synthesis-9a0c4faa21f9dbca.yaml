@@ -1,0 +1,69 @@
+---
+prelude: >
+  - |
+    This release introduces a new transpiler synthesis pass using a PermRowCol
+    algorithm for routing CNOTS as efficiently as possible. Instead of
+    SWAP-based techniques, the synthesis pass uses a few Steiner Tree-based
+    PermRowCol transpilation algorithm.
+
+    The PermRowCol algorithm dynamically reallocates logical qubits during the
+    computation, and thus results in fewer output CNOTs than the algorithms
+    Steiner-Gauss and RowCol. Each SWAP-gate adds three CNOT-gates, which
+    causes significant overhead. PermRowCol utilises bridge template which acts
+    like a remote CNOT instead of SWAP-gates, which reduces the required number
+    of added CNOT-gates. However, the bridge template does not move the qubits.
+
+features:
+  - |
+    List new features here, or remove this section.  All of the list items in
+    this section are combined when the release notes are rendered, so the text
+    needs to be worded so that it does not depend on any information only
+    available in another section, such as the prelude. This may mean repeating
+    some details.
+
+    Added a new transpiler synthesis pass PermRowColSynthesis that uses a
+    PermRowCol algorithm for routing CNOTS as efficiently as possible. Instead
+    of SWAP-based techniques, the synthesis pass uses a few Steiner Tree-based
+    PermRowCol transpilation algorithm.
+
+    The PermRowCol algorithm dynamically reallocates logical qubits during the
+    computation, and thus results in fewer output CNOTs than the algorithms
+    Steiner-Gauss and RowCol. Each SWAP-gate adds three CNOT-gates, which
+    causes significant overhead. PermRowCol utilises bridge template which acts
+    like a remote CNOT instead of SWAP-gates, which reduces the required number
+    of added CNOT-gates. However, the bridge template does not move the qubits.
+
+    :class:`PermRowColSynthesis` inherits :class:`LinearFunctionsSynthesis`,
+    and upon initialization receives a :class:`CouplingMap` object denoting
+    the applicable connections between qubits.
+
+    In :func:`PermRowCol.run()` method the function receives :class:`DAGCircuit`
+    object to re-synthesize, and the method returns a :class:`DAGCircuit`
+    object. The synthesis pass utilizes :class:`PermRowCol` that gets a
+    :class:`CouplingMap` object upon initialization. The circuit is rerouted
+    with :func:`PermRowCol.perm_row_col()` that modifies a parity matrix and
+    returns two class objects :class:`QuantumCircuit` that corresponds with the
+    re-synthesized circuit and the qubit allocation.
+
+upgrade:
+  - |
+    List upgrade notes here, or remove this section.  All of the list items in
+    this section are combined when the release notes are rendered, so the text
+    needs to be worded so that it does not depend on any information only
+    available in another section, such as the prelude. This may mean repeating
+    some details.
+critical:
+  - |
+    Add critical notes here, or remove this section.  All of the list items in
+    this section are combined when the release notes are rendered, so the text
+    needs to be worded so that it does not depend on any information only
+    available in another section, such as the prelude. This may mean repeating
+    some details.
+
+other:
+  - |
+    Add other notes here, or remove this section.  All of the list items in
+    this section are combined when the release notes are rendered, so the text
+    needs to be worded so that it does not depend on any information only
+    available in another section, such as the prelude. This may mean repeating
+    some details.
