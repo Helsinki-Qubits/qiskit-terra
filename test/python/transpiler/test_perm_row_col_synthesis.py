@@ -1,9 +1,8 @@
 """Test PermRowColSynthesis"""
 
 from builtins import issubclass
-from qiskit.circuit import quantumcircuit
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import numpy as np
 
@@ -13,10 +12,11 @@ from qiskit.transpiler.passes.synthesis.linear_functions_synthesis import Linear
 from qiskit import QuantumCircuit
 from qiskit.converters import circuit_to_dag, dag_to_circuit
 from qiskit.dagcircuit.dagcircuit import DAGCircuit
-from qiskit.transpiler import CouplingMap, coupling
+from qiskit.transpiler import CouplingMap
 from qiskit.circuit.library.generalized_gates.linear_function import LinearFunction
 from qiskit.circuit.library.generalized_gates.permutation import Permutation
 from qiskit.transpiler.passes.optimization.collect_linear_functions import CollectLinearFunctions
+from qiskit.quantum_info.operators.operator import Operator
 
 
 class TestPermRowColSynthesis(QiskitTestCase):
@@ -50,19 +50,33 @@ class TestPermRowColSynthesis(QiskitTestCase):
 
         self.assertIsInstance(instance, DAGCircuit)
 
-    @patch("qiskit.transpiler.passes.synthesis.perm_row_col_synthesis.PermRowCol.perm_row_col")
-    def test_run(self, mock_perm_row_col):
-        """Test run method"""
+    def test_run_with_empty_circuit(self):
+        """Test that the input and output circuits are equivalent if
+        the input circuit has no instructions"""
         empty = QuantumCircuit(6)
-        empty.cx(0, 1)
-        empty.cx(1, 5)
-        empty.cx(3, 1)
-        empty.cx(1, 4)
-        empty.cx(1, 3)
-        empty.cx(3, 5)
-        empty.cx(2, 1)
+        dag = CollectLinearFunctions().run(circuit_to_dag(empty))
+        coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
+        coupling = CouplingMap(coupling_list)
+
+        synthesis = PermRowColSynthesis(coupling)
+        instance = synthesis.run(dag)
+        res_circ = dag_to_circuit(instance)
+
+        self.assertTrue(Operator(empty).equiv(Operator(res_circ)))
+
+    @patch("qiskit.transpiler.passes.synthesis.perm_row_col_synthesis.PermRowCol.perm_row_col")
+    def test_run_with_mock(self, mock_perm_row_col):
+        """Test run method"""
+        input_circ = QuantumCircuit(6)
+        input_circ.cx(0, 1)
+        input_circ.cx(1, 5)
+        input_circ.cx(3, 1)
+        input_circ.cx(1, 4)
+        input_circ.cx(1, 3)
+        input_circ.cx(3, 5)
+        input_circ.cx(2, 1)
         collec = CollectLinearFunctions()
-        e_dag = circuit_to_dag(empty)
+        e_dag = circuit_to_dag(input_circ)
         dag = collec.run(e_dag)
 
         coupling = CouplingMap()
@@ -80,21 +94,15 @@ class TestPermRowColSynthesis(QiskitTestCase):
         circ.cx(2, 5)
         circ.cx(5, 4)
         circ.cx(5, 2)
-
         perm = Permutation(6, [5, 3, 1, 0, 4, 2])
-
         mock_perm_row_col.return_value = (circ, perm)
 
         synthesis = PermRowColSynthesis(coupling)
-
         instance = synthesis.run(dag)
 
-        ret_circ = dag_to_circuit(instance)
+        res_circ = dag_to_circuit(instance)
 
-        # extract the cnot circuit from the output
-        circ2 = QuantumCircuit.from_instructions(ret_circ.data[:13], qubits=ret_circ.qubits)
-
-        self.assertTrue((LinearFunction(circ).linear == LinearFunction(circ2).linear).all())
+        self.assertTrue(Operator(res_circ).equiv(Operator(res_circ)))
         self.assertTrue(mock_perm_row_col.called)
 
 
