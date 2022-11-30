@@ -163,8 +163,7 @@ class PermRowCol:
         """
         C = []
         tree = rx.steiner_tree(self._graph, terminals, weight_fn=lambda x: 1)
-        post_edges = []
-        postorder_traversal(tree, root, post_edges)
+        post_edges = postorder_traversal(tree, root)
 
         for edge in post_edges:
             if parity_mat[edge[0], col] == 0:
@@ -192,10 +191,8 @@ class PermRowCol:
         C = []
         tree = rx.steiner_tree(self._graph, terminals, weight_fn=lambda x: 1)
 
-        pre_edges = []
-        preorder_traversal(tree, root, pre_edges)
-        post_edges = []
-        postorder_traversal(tree, root, post_edges)
+        pre_edges = preorder_traversal(tree, root)
+        post_edges = postorder_traversal(tree, root)
 
         for edge in pre_edges:
 
