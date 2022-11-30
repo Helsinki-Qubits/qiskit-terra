@@ -10,6 +10,7 @@ from qiskit import QuantumCircuit
 from qiskit.transpiler import CouplingMap
 from qiskit.circuit.library.generalized_gates.permutation import Permutation
 from qiskit.transpiler.synthesis.matrix_utils import build_random_parity_matrix
+from qiskit.providers.fake_provider import FakeTenerife
 
 
 class TestPermRowCol(QiskitTestCase):
@@ -509,11 +510,12 @@ class TestPermRowCol(QiskitTestCase):
 
     def test_add_cnot_adds_four_hadamard_gates_if_cnot_is_in_wrong_direction(self):
         """Test add one cnot to wrong direction adds four hadamard gates"""
-
-        coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
+        backend = FakeTenerife()
+        data = backend.properties().to_dict()['gates']
+        coupling_list = [tuple(item['qubits']) for item in data if item['gate'] == 'cx']
         coupling = CouplingMap(coupling_list)
-        n = 6
-        parity_mat = build_random_parity_matrix(42, 6, 60)
+        n = 5
+        parity_mat = build_random_parity_matrix(42, n, 60)
 
         circuit = QuantumCircuit(n)
         permrowcol = PermRowCol(coupling)
