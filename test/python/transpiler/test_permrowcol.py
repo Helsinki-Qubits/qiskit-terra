@@ -508,7 +508,7 @@ class TestPermRowCol(QiskitTestCase):
         self.assertEqual(len(h_gates), 0)
 
     def test_add_cnot_adds_four_hadamard_gates_if_cnot_is_in_wrong_direction(self):
-        """Test add one cnot to wrong direction adds four cnots"""
+        """Test add one cnot to wrong direction adds four hadamard gates"""
 
         coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
         coupling = CouplingMap(coupling_list)

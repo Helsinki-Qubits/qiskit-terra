@@ -243,16 +243,13 @@ class PermRowCol:
 
         return nodes
 
-    def _add_cnot(self, edge: tuple, circuit: QuantumCircuit) -> list:
+    def _add_cnot(self, edge: tuple, circuit: QuantumCircuit):
 
         """check if cnot is in allowed direction and add Hadamard gates if necessary
 
         Args:
             edge (tuple): tuple representing qubits between cnot.
             circuit (QuantumCircuit): QuantumCircuit for adding cnots
-
-
-        Returns:
 
         """
         edges = self._coupling_map.get_edges()
