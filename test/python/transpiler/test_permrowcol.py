@@ -511,8 +511,8 @@ class TestPermRowCol(QiskitTestCase):
     def test_add_cnot_adds_four_hadamard_gates_if_cnot_is_in_wrong_direction(self):
         """Test add one cnot to wrong direction adds four hadamard gates"""
         backend = FakeTenerife()
-        data = backend.properties().to_dict()['gates']
-        coupling_list = [tuple(item['qubits']) for item in data if item['gate'] == 'cx']
+        data = backend.properties().to_dict()["gates"]
+        coupling_list = [tuple(item["qubits"]) for item in data if item["gate"] == "cx"]
         coupling = CouplingMap(coupling_list)
         n = 5
         parity_mat = build_random_parity_matrix(42, n, 60)
