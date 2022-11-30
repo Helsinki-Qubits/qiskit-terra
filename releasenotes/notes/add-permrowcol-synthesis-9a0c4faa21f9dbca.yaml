@@ -33,17 +33,31 @@ features:
     like a remote CNOT instead of SWAP-gates, which reduces the required number
     of added CNOT-gates. However, the bridge template does not move the qubits.
 
-    :class:`PermRowColSynthesis` inherits :class:`LinearFunctionsSynthesis`,
-    and upon initialization receives a :class:`CouplingMap` object denoting
-    the applicable connections between qubits.
+    Added a :class:`PermRowColSynthesis` that inherits
+    :class:`LinearFunctionsSynthesis`, and upon initialization receives a
+    :class:`CouplingMap` object denoting the applicable connections between
+    qubits.
 
-    In :func:`PermRowCol.run()` method the function receives :class:`DAGCircuit`
-    object to re-synthesize, and the method returns a :class:`DAGCircuit`
-    object. The synthesis pass utilizes :class:`PermRowCol` that gets a
-    :class:`CouplingMap` object upon initialization. The circuit is rerouted
-    with :func:`PermRowCol.perm_row_col()` that modifies a parity matrix and
-    returns two class objects :class:`QuantumCircuit` that corresponds with the
-    re-synthesized circuit and the qubit allocation.
+    In :func:`PermRowColSynthesis.run()` method the function receives
+    :class:`DAGCircuit` object to re-synthesize, and the method returns a
+    :class:`DAGCircuit` object. The synthesis pass utilizes :class:`PermRowCol`
+    that gets a :class:`CouplingMap` object upon initialization.
+
+    Added a :class:`PermRowCol` that receives a :class:`CouplingMap` upon
+    initialization. The class executes the PermRowCol algorithm.
+
+    The circuit is rerouted by every node by running
+    :func:`PermRowCol.perm_row_col()` that receives as input a parity matrix
+    that is the linear representation of a given node. The function modifies
+    the parity matrix and returns two :class:`QuantumCircuit` objects that
+    corresponds with the re-synthesized circuit and the qubit allocation. The
+    input parity matrix will also correspond to the qubit allocation after
+    the function is run.
+
+    :func:`PermRowCol.run()` will change the two :class:`QuantumCircuit` objects
+    into two :class:`DAGCircuit` objects and try to compose them together???? If this is not possible, just one  :class:`DAGCircuit` object made from the circuit is used.
+
+    After the circuit has been re-synthesized in this manner by every node, it is returned a output.
 
 upgrade:
   - |
@@ -52,6 +66,9 @@ upgrade:
     needs to be worded so that it does not depend on any information only
     available in another section, such as the prelude. This may mean repeating
     some details.
+
+  # Do we need?
+
 critical:
   - |
     Add critical notes here, or remove this section.  All of the list items in
@@ -59,6 +76,8 @@ critical:
     needs to be worded so that it does not depend on any information only
     available in another section, such as the prelude. This may mean repeating
     some details.
+
+  # Do we need?
 
 other:
   - |
