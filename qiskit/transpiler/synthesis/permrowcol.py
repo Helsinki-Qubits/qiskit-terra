@@ -257,7 +257,7 @@ class PermRowCol:
         if edge not in edges:
             circuit.h(edge[0])
             circuit.h(edge[1])
-            circuit.cx(edge[0], edge[1])
+            circuit.cx(edge[1], edge[0])
             circuit.h(edge[0])
             circuit.h(edge[1])
 
