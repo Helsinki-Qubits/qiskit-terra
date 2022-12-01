@@ -10,7 +10,7 @@ from qiskit import QuantumCircuit
 from qiskit.transpiler import CouplingMap
 from qiskit.circuit.library.generalized_gates.permutation import Permutation
 from qiskit.transpiler.synthesis.matrix_utils import build_random_parity_matrix
-from qiskit.providers.fake_provider import FakeTenerife
+from qiskit.providers.fake_provider import FakeTenerife, FakeManilaV2
 
 
 class TestPermRowCol(QiskitTestCase):
@@ -502,14 +502,34 @@ class TestPermRowCol(QiskitTestCase):
         coupling = CouplingMap(coupling_list)
         permrowcol = PermRowCol(coupling)
         circuit, perm = permrowcol.perm_row_col(parity_mat)
-        h_gates = []
+        h_gates = 0
         for i in circuit:
             if i[0].name == "h":
-                h_gates.append(i)
-        self.assertEqual(len(h_gates), 0)
+                h_gates += 1
+        self.assertEqual(h_gates, 0)
 
-    def test_add_cnot_adds_four_hadamard_gates_if_cnot_is_in_wrong_direction(self):
+    def test_add_cnot_adds_exactly_four_hadamards_around_a_cnot_when_needed(self):
         """Test add one cnot to wrong direction adds four hadamard gates"""
+        backend = FakeTenerife()
+        data = backend.properties().to_dict()["gates"]
+        coupling_list = [tuple(item["qubits"]) for item in data if item["gate"] == "cx"]
+        coupling = CouplingMap(coupling_list)
+        n = 5
+        parity_mat = build_random_parity_matrix(42, n, 60)
+
+        circuit = QuantumCircuit(n)
+        permrowcol = PermRowCol(coupling)
+        circuit, perm = permrowcol.perm_row_col(parity_mat)
+
+        h_gates = 0
+        for i in circuit:
+            if i[0].name == "h":
+                h_gates += 1
+
+        self.assertEqual(h_gates % 4, 0)
+
+    def test_add_cnot_never_adds_hadamard_gates_if_opposite_cnot_is_allowed(self):
+        """Test add cnots does not add hadamards if the opposite edge is allowed, and so the existing hadamards are not unnecessary"""
         backend = FakeTenerife()
         data = backend.properties().to_dict()["gates"]
         coupling_list = [tuple(item["qubits"]) for item in data if item["gate"] == "cx"]
@@ -525,15 +545,53 @@ class TestPermRowCol(QiskitTestCase):
             if instruction[0].name == "cx":
                 qubit_0 = instruction[1][0]
                 qubit_1 = instruction[1][1]
-                if (qubit_0.index, qubit_1.index) not in coupling_list:
-                    self.assertEqual(circuit[index - 2][0].name, "h")
-                    self.assertEqual(circuit[index - 2][1][0], qubit_0)
-                    self.assertEqual(circuit[index - 1][0].name, "h")
-                    self.assertEqual(circuit[index - 1][1][0], qubit_1)
-                    self.assertEqual(circuit[index + 1][0].name, "h")
-                    self.assertEqual(circuit[index + 1][1][0], qubit_0)
-                    self.assertEqual(circuit[index + 2][0].name, "h")
-                    self.assertEqual(circuit[index + 2][1][0], qubit_1)
+                if circuit[index - 2][0].name == "h":
+                    opposite_edge = (qubit_1.index, qubit_0.index)
+                    self.assertEqual((opposite_edge in coupling_list), False)
+
+    def test_add_cnot_never_adds_cnots_that_are_not_allowed(self):
+        """Test circuit never contains any cnots in the wrong direction"""
+
+        backend = FakeTenerife()
+        data = backend.properties().to_dict()["gates"]
+        coupling_list = [tuple(item["qubits"]) for item in data if item["gate"] == "cx"]
+        coupling = CouplingMap(coupling_list)
+        n = 5
+        parity_mat = build_random_parity_matrix(42, n, 60)
+
+        circuit = QuantumCircuit(n)
+        permrowcol = PermRowCol(coupling)
+        circuit, perm = permrowcol.perm_row_col(parity_mat)
+
+        for index, instruction in enumerate(circuit):
+            if instruction[0].name == "cx":
+                qubit_0 = instruction[1][0]
+                qubit_1 = instruction[1][1]
+                edge = (qubit_0.index, qubit_1.index)
+                self.assertEqual((edge in coupling_list), True)
+
+    def test_add_cnot_never_adds_hadamard_gates_to_a_bidirectional_circuit(self):
+        """A bidirectional circuit will never have Hadamard gates added to it"""
+        # Change slightly later when `directed: bool` argument to perm_row_col() is added
+        backend = FakeManilaV2()
+        coupling_map = backend.coupling_map
+        coupling = CouplingMap(coupling_map)
+        permrowcol = PermRowCol(coupling)
+        n = 5
+        parity_mat = build_random_parity_matrix(42, n, 60)
+
+        circuit = QuantumCircuit(n)
+        permrowcol = PermRowCol(coupling)
+        circuit, perm = permrowcol.perm_row_col(parity_mat)
+        h_gates = 0
+
+        h_gates = 0
+
+        for i in circuit:
+            if i[0].name == "h":
+                h_gates += 1
+
+        self.assertEqual(h_gates, 0)
 
 
 if __name__ == "__main__":

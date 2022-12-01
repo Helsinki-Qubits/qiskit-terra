@@ -260,6 +260,7 @@ class PermRowCol:
             circuit.cx(edge[1], edge[0])
             circuit.h(edge[0])
             circuit.h(edge[1])
+            pass
 
-        elif edge in edges:
+        else:
             circuit.cx(edge[0], edge[1])
