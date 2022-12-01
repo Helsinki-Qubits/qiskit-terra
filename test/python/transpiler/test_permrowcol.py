@@ -583,7 +583,6 @@ class TestPermRowCol(QiskitTestCase):
         circuit = QuantumCircuit(n)
         permrowcol = PermRowCol(coupling)
         circuit, perm = permrowcol.perm_row_col(parity_mat)
-        h_gates = 0
 
         h_gates = 0
 
