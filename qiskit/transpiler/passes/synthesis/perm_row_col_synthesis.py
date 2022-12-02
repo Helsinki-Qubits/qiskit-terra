@@ -43,7 +43,7 @@ class PermRowColSynthesis(LinearFunctionsSynthesis):
 
             try:
                 decomposition = circuit_to_dag(cnots).compose(
-                    circuit_to_dag(permutation.decompose()), inplace=False
+                    circuit_to_dag(permutation), inplace=False
                 )
             except DAGCircuitError as err:
                 print("Dag composition failed, defaulting to just permrowcol cnot", err)
