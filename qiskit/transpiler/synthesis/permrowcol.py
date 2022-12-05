@@ -57,13 +57,13 @@ class PermRowCol:
             column = self.choose_column(parity_mat, cols, row)
             nodes = self._get_nodes(parity_mat, column)
             for edge in self._eliminate_column(parity_mat, row, column, nodes):
-                circuit.cx(edge[0], edge[1])
+                self._add_cnot(edge, circuit)
 
             if sum(parity_mat[row]) > 1:
                 nodes = self._get_nodes_for_eliminate_row(parity_mat, column, row)
 
                 for edge in self._eliminate_row(parity_mat, row, nodes):
-                    circuit.cx(edge[0], edge[1])  # Adds a CNOT to the circuit
+                    self._add_cnot(edge, circuit)
 
             qubit_alloc[column] = row
 
@@ -239,3 +239,25 @@ class PermRowCol:
         ]  # Finds indexes of rows that are added to chosen_row
 
         return nodes
+
+    def _add_cnot(self, edge: tuple, circuit: QuantumCircuit):
+
+        """check if cnot is in allowed direction and add Hadamard gates if necessary
+
+        Args:
+            edge (tuple): tuple representing qubits between cnot.
+            circuit (QuantumCircuit): QuantumCircuit for adding cnots
+
+        """
+        edges = self._coupling_map.get_edges()
+
+        if edge not in edges:
+            circuit.h(edge[0])
+            circuit.h(edge[1])
+            circuit.cx(edge[1], edge[0])
+            circuit.h(edge[0])
+            circuit.h(edge[1])
+            pass
+
+        else:
+            circuit.cx(edge[0], edge[1])
