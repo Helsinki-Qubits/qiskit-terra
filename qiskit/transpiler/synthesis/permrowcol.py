@@ -26,9 +26,8 @@ from qiskit.transpiler.synthesis.graph_utils import (
 )
 from qiskit.circuit.library.generalized_gates.permutation import Permutation
 from qiskit.circuit.exceptions import CircuitError
+
 from qiskit.synthesis.linear.linear_circuits_utils import calc_inverse_matrix
-
-
 
 
 class PermRowCol:
@@ -37,10 +36,10 @@ class PermRowCol:
     def __init__(self, coupling_map: CouplingMap):
         self._coupling_map = coupling_map
         self._graph = pydigraph_to_pygraph(self._coupling_map.graph)
-        self.add_hadamarts = False
+        self.choose_column_function = self.choose_column
+        self.choose_row_function = self.choose_row
 
     def perm_row_col(self, parity_mat: np.ndarray) -> QuantumCircuit:
-
         """Run permrowcol algorithm on the given parity matrix
 
         Args:
@@ -56,26 +55,16 @@ class PermRowCol:
 
         while len(self._graph.node_indexes()) > 1:
             n_vertices = noncutting_vertices(self._graph)
-            row = self.choose_row(n_vertices, parity_mat)
+            row = self.choose_row_function(n_vertices, parity_mat)
 
             cols = self._return_columns(qubit_alloc)
-            column = self.choose_column(parity_mat, cols, row)
+            column = self.choose_column_function(parity_mat, cols, row)
             nodes = self._get_nodes(parity_mat, column)
-
             self._eliminate_column(circuit, parity_mat, row, column, nodes)
 
-            # for edge in self._eliminate_column(parity_mat, row, column, nodes):
-            #     circuit.cx(edge[0], edge[1])
             if sum(parity_mat[row]) > 1:
                 nodes = self._get_nodes_for_eliminate_row(parity_mat, column, row)
                 self._eliminate_row(circuit, parity_mat, row, nodes)
-
-
-            # if sum(parity_mat[row]) > 1:
-            #     nodes = self._get_nodes_for_eliminate_row(parity_mat, column, row)
-
-            #     for edge in self._eliminate_row(parity_mat, row, nodes):
-            #         circuit.cx(edge[0], edge[1])  # Adds a CNOT to the circuit
 
             qubit_alloc[column] = row
 
@@ -90,8 +79,8 @@ class PermRowCol:
             raise RuntimeError(
                 f"Formed qubit allocation vector is not a valid permutation pattern: {qubit_alloc}"
             )
+        # Circuit is created in reverse and the reverse of a cnot-circuit is it's inverse.
         return circuit.inverse(), perm
-        # return circuit, perm
 
     def _reduce_graph(self, node: int):
         """Removes a node from pydigraph
@@ -178,44 +167,10 @@ class PermRowCol:
 
         for edge in post_edges:
             if parity_mat[edge[0], col] == 0:
-                self._add_cnot(circuit, parity_mat, edge[0], edge[1])
+                self._add_cnot(circuit, parity_mat, edge[1], edge[0])
 
         for edge in post_edges:
             self._add_cnot(circuit, parity_mat, edge[1], edge[0])
-
-
-    # def _eliminate_column(
-    #     self,
-    #     parity_mat: np.ndarray,
-    #     root: int,
-    #     col: int,
-    #     terminals: np.ndarray,
-    # ) -> list:
-    #     """Eliminates the selected column from the parity matrix and returns the operations.
-
-    #     Args:
-    #         parity_mat (np.ndarray): parity matrix
-    #         coupling (CouplingMap): topology
-    #         root (int): root of the steiner tree
-    #         terminals (np.ndarray): terminals of the steiner tree
-
-    #     Returns:
-    #         list: list of tuples represents control and target qubits with a cnot gate between them.
-    #     """
-    #     C = []
-    #     tree = rx.steiner_tree(self._graph, terminals, weight_fn=lambda x: 1)
-    #     post_edges = postorder_traversal(tree, root)
-
-    #     for edge in post_edges:
-    #         if parity_mat[edge[0], col] == 0:
-    #             C.append((edge[0], edge[1]))
-    #             parity_mat[edge[0], :] = (parity_mat[edge[0], :] + parity_mat[edge[1], :]) % 2
-
-    #     for edge in post_edges:
-    #         C.append((edge[1], edge[0]))
-    #         parity_mat[edge[1], :] = (parity_mat[edge[0], :] + parity_mat[edge[1], :]) % 2
-
-    #     return C
 
     def _eliminate_row(self, circuit: QuantumCircuit, parity_mat: np.ndarray, root: int, terminals: np.ndarray):
         """Eliminates the selected row from the parity matrix and returns the operations as a list of tuples.
@@ -234,41 +189,11 @@ class PermRowCol:
 
         for edge in pre_edges:
 
-            if edge[1] not in terminals:
-                self._add_cnot(circuit, parity_mat, edge[0], edge[1])
+            if edge[0] not in terminals:
+                self._add_cnot(circuit, parity_mat, edge[1], edge[0])
 
         for edge in post_edges:
-            self._add_cnot(circuit, parity_mat, edge[0], edge[1])
-
-    # def _eliminate_row(self, parity_mat: np.ndarray, root: int, terminals: np.ndarray) -> list:
-    #     """Eliminates the selected row from the parity matrix and returns the operations as a list of tuples.
-
-    #     Args:
-    #         parity_mat (np.ndarray): parity matrix
-    #         coupling (CouplingMap): topology
-    #         root (int): root of the steiner tree
-    #         terminals (np.ndarray): terminals of the steiner tree
-
-    #     Returns:
-    #         list of tuples represents control and target qubits with a cnot gate between them.
-    #     """
-    #     C = []
-    #     tree = rx.steiner_tree(self._graph, terminals, weight_fn=lambda x: 1)
-
-    #     pre_edges = preorder_traversal(tree, root)
-    #     post_edges = postorder_traversal(tree, root)
-
-    #     for edge in pre_edges:
-
-    #         if edge[1] not in terminals:
-    #             C.append((edge[0], edge[1]))
-    #             parity_mat[edge[0], :] = (parity_mat[edge[0], :] + parity_mat[edge[1], :]) % 2
-
-    #     for edge in post_edges:
-    #         C.append((edge[0], edge[1]))
-    #         parity_mat[edge[0], :] = (parity_mat[edge[0], :] + parity_mat[edge[1], :]) % 2
-
-    #     return C
+            self._add_cnot(circuit, parity_mat, edge[1], edge[0])
 
     def _add_cnot(self, circuit: QuantumCircuit, parity_mat: np.ndarray, control: int, target: int):
         """" Adds a CX between `control` and `target` qubits to the given QuantumCircuit `circuit` and updates the matrix `parity_mat` accordingly.
@@ -281,21 +206,19 @@ class PermRowCol:
             target (int) : the target qubit for the CNOT
 
         """
-        if self.add_hadamarts==True:
-            if (control, target) not in self._coupling_map:
-                circuit.h(control)
-                circuit.h(target)
-                circuit.cx(target, control)
-                circuit.h(control)
-                circuit.h(target)
-            else:
-                circuit.cx(control, target)
+        if (control, target) not in self._coupling_map:
+            circuit.h(control)
+            circuit.h(target)
+            circuit.cx(target, control)
+            circuit.h(control)
+            circuit.h(target)
         else:
-                circuit.cx(control, target)
-        parity_mat[control, :] = (parity_mat[control, :] + parity_mat[target, :]) % 2
-        #Bellow is Ariannes code but the upper line gives right results
-        #parity_mat[target, :] = (parity_mat[control, :] + parity_mat[target, :]) % 2
+            circuit.cx(control, target)
 
+        print("parity mat before:", parity_mat, sep="\n")
+        print("adding row", control, "to row", target)
+        parity_mat[target, :] = (parity_mat[control, :] + parity_mat[target, :]) % 2
+        print("parity mat after:", parity_mat, sep="\n")
 
     def _get_nodes_for_eliminate_row(
         self, parity_mat: np.ndarray, chosen_column: int, chosen_row: int
@@ -319,10 +242,10 @@ class PermRowCol:
         )  # Parity_mat without chosen_column and chosen_row
         B = np.delete(parity_mat[chosen_row], chosen_column)  # Chosen_row without chosen_column
 
-        inv_A = calc_inverse_matrix(A)
-        # inv_A = LinearFunction(
-        #     LinearFunction(A).synthesize().reverse_ops()
-        # ).linear  # Creates inverse of parity_mat
+        print("matrix A before inverting:", A, sep="\n")
+        inv_A = calc_inverse_matrix(A) # Creates inverse of parity_mat
+
+        print("matrix", A, "not invertible!", sep="\n")
 
         X = np.insert((np.matmul(B, inv_A) % 2), chosen_row, 1)  # Calculates B*inv_A
 
@@ -331,5 +254,3 @@ class PermRowCol:
         ]  # Finds indexes of rows that are added to chosen_row
 
         return nodes
-
-
