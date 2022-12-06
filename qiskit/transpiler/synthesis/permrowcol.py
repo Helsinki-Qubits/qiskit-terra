@@ -150,7 +150,7 @@ class PermRowCol:
         parity_mat: np.ndarray,
         root: int,
         col: int,
-        terminals: np.ndarray
+        terminals: np.ndarray,
     ):
         """Eliminates the selected column from the parity matrix and returns the operations.
 
@@ -172,7 +172,9 @@ class PermRowCol:
         for edge in post_edges:
             self._add_cnot(circuit, parity_mat, edge[1], edge[0])
 
-    def _eliminate_row(self, circuit: QuantumCircuit, parity_mat: np.ndarray, root: int, terminals: np.ndarray):
+    def _eliminate_row(
+        self, circuit: QuantumCircuit, parity_mat: np.ndarray, root: int, terminals: np.ndarray
+    ):
         """Eliminates the selected row from the parity matrix and returns the operations as a list of tuples.
 
         Args:
@@ -196,7 +198,7 @@ class PermRowCol:
             self._add_cnot(circuit, parity_mat, edge[1], edge[0])
 
     def _add_cnot(self, circuit: QuantumCircuit, parity_mat: np.ndarray, control: int, target: int):
-        """" Adds a CX between `control` and `target` qubits to the given QuantumCircuit `circuit` and updates the matrix `parity_mat` accordingly.
+        """ " Adds a CX between `control` and `target` qubits to the given QuantumCircuit `circuit` and updates the matrix `parity_mat` accordingly.
         If the CX direction is not allowed by the CouplingMap, it will be conjugated with Hadamards and reversed.
 
         Args:
@@ -215,10 +217,7 @@ class PermRowCol:
         else:
             circuit.cx(control, target)
 
-        print("parity mat before:", parity_mat, sep="\n")
-        print("adding row", control, "to row", target)
         parity_mat[target, :] = (parity_mat[control, :] + parity_mat[target, :]) % 2
-        print("parity mat after:", parity_mat, sep="\n")
 
     def _get_nodes_for_eliminate_row(
         self, parity_mat: np.ndarray, chosen_column: int, chosen_row: int
@@ -242,10 +241,7 @@ class PermRowCol:
         )  # Parity_mat without chosen_column and chosen_row
         B = np.delete(parity_mat[chosen_row], chosen_column)  # Chosen_row without chosen_column
 
-        print("matrix A before inverting:", A, sep="\n")
-        inv_A = calc_inverse_matrix(A) # Creates inverse of parity_mat
-
-        print("matrix", A, "not invertible!", sep="\n")
+        inv_A = calc_inverse_matrix(A)  # Creates inverse of parity_mat
 
         X = np.insert((np.matmul(B, inv_A) % 2), chosen_row, 1)  # Calculates B*inv_A
 
