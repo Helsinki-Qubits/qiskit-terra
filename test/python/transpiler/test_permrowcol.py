@@ -12,6 +12,7 @@ from qiskit.circuit.library.generalized_gates.permutation import Permutation
 from qiskit.transpiler.synthesis.matrix_utils import build_random_parity_matrix
 from qiskit.providers.fake_provider import FakeTenerife, FakeManilaV2
 from qiskit.circuit.library.generalized_gates.linear_function import LinearFunction
+from qiskit.quantum_info import Statevector
 
 
 class TestPermRowCol(QiskitTestCase):
@@ -190,138 +191,129 @@ class TestPermRowCol(QiskitTestCase):
 
         self.assertEqual(index, 2)
 
-    # def test_eliminate_column_returns_list(self):
-    #     """Test the output type of eliminate_column"""
-    #     coupling = CouplingMap()
-    #     permrowcol = PermRowCol(coupling)
-    #     parity_mat = np.ndarray(0)
-    #     terminals = np.ndarray(0)
+    def test_eliminate_column_modifies_circuit_correctly(self):
+        """Test that eliminate_column modifies the given circuit correctly"""
+        coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
+        coupling = CouplingMap(coupling_list)
+        permrowcol = PermRowCol(coupling)
+        parity_mat = np.array(
+            [
+                [0, 1, 0, 1, 1, 0],
+                [1, 1, 1, 1, 1, 0],
+                [1, 0, 0, 0, 1, 1],
+                [1, 1, 1, 0, 1, 0],
+                [1, 0, 1, 0, 1, 0],
+                [1, 0, 1, 0, 1, 1],
+            ]
+        )
+        root = 0
+        column = 3
+        terminals = np.array([1, 0])
+        circ = QuantumCircuit(6)
+        permrowcol._eliminate_column(circ, parity_mat, root, column, terminals)
+        exp_circ = QuantumCircuit(6)
+        exp_circ.cx(0, 1)
 
-    #     instance = permrowcol._eliminate_column(parity_mat, 0, 0, terminals)
+        self.assertTrue(
+            Statevector.from_instruction(circ).equiv(Statevector.from_instruction(exp_circ))
+        )
 
-    #     self.assertIsInstance(instance, list)
+    def test_eliminate_column_eliminates_selected_column(self):
+        """Test eliminate_column for eliminating selected column in case of example parity_matrix and coupling map"""
+        coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
+        coupling = CouplingMap(coupling_list)
+        permrowcol = PermRowCol(coupling)
+        parity_mat = np.array(
+            [
+                [0, 1, 0, 1, 1, 0],
+                [1, 1, 1, 1, 1, 0],
+                [1, 0, 0, 0, 1, 1],
+                [1, 1, 1, 0, 1, 0],
+                [1, 0, 1, 0, 1, 0],
+                [1, 0, 1, 0, 1, 1],
+            ]
+        )
 
-    # def test_eliminate_column_returns_correct_list_of_tuples_with_given_input(self):
-    #     """Test eliminate_column method for correctness in case of example parity_matrix and coupling map"""
-    #     coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
-    #     coupling = CouplingMap(coupling_list)
-    #     permrowcol = PermRowCol(coupling)
-    #     parity_mat = np.array(
-    #         [
-    #             [0, 1, 0, 1, 1, 0],
-    #             [1, 1, 1, 1, 1, 0],
-    #             [1, 0, 0, 0, 1, 1],
-    #             [1, 1, 1, 0, 1, 0],
-    #             [1, 0, 1, 0, 1, 0],
-    #             [1, 0, 1, 0, 1, 1],
-    #         ]
-    #     )
-    #     root = 0
-    #     column = 3
-    #     terminals = np.array([1, 0])
-    #     ret = permrowcol._eliminate_column(parity_mat, root, column, terminals)
+        root = 0
+        column = 3
+        terminals = np.array([1, 0])
+        circ = QuantumCircuit(6)
+        permrowcol._eliminate_column(circ, parity_mat, root, column, terminals)
 
-    #     self.assertEqual(ret, [(1, 0)])
+        self.assertEqual(1, sum(parity_mat[:, column]))
+        self.assertEqual(1, parity_mat[1, column])
 
-    # def test_eliminate_column_eliminates_selected_column(self):
-    #     """Test eliminate_column for eliminating selected column in case of example parity_matrix and coupling map"""
-    #     coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
-    #     coupling = CouplingMap(coupling_list)
-    #     permrowcol = PermRowCol(coupling)
-    #     parity_mat = np.array(
-    #         [
-    #             [0, 1, 0, 1, 1, 0],
-    #             [1, 1, 1, 1, 1, 0],
-    #             [1, 0, 0, 0, 1, 1],
-    #             [1, 1, 1, 0, 1, 0],
-    #             [1, 0, 1, 0, 1, 0],
-    #             [1, 0, 1, 0, 1, 1],
-    #         ]
-    #     )
+    def test_eliminate_row_modifies_circuit_correctly(self):
+        """Test eliminate_row method for correctness in case of example parity_matrix and coupling map"""
+        coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
+        coupling = CouplingMap(coupling_list)
+        permrowcol = PermRowCol(coupling)
+        parity_mat = np.array(
+            [
+                [0, 1, 0, 1, 1, 0],
+                [1, 0, 1, 0, 0, 0],
+                [1, 0, 0, 0, 1, 1],
+                [1, 1, 1, 0, 1, 0],
+                [1, 0, 1, 0, 1, 0],
+                [1, 0, 1, 0, 1, 1],
+            ]
+        )
+        root = 0
+        terminals = np.array([0, 1, 3])
+        circ = QuantumCircuit(6)
+        permrowcol._eliminate_row(circ, parity_mat, root, terminals)
+        exp_circ = QuantumCircuit(6)
+        exp_circ.cx(1, 0)
+        exp_circ.cx(3, 0)
 
-    #     root = 0
-    #     column = 3
-    #     terminals = np.array([1, 0])
-    #     ret = permrowcol._eliminate_column(parity_mat, root, column, terminals)
+        self.assertTrue(
+            Statevector.from_instruction(circ).equiv(Statevector.from_instruction(exp_circ))
+        )
 
-    #     self.assertEqual(1, sum(parity_mat[:, column]))
-    #     self.assertEqual(1, parity_mat[0, column])
+    def test_eliminate_row_eliminates_selected_row(self):
+        """Test eliminate_row method for correctness in case of example parity_matrix and coupling map"""
+        coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
+        coupling = CouplingMap(coupling_list)
+        permrowcol = PermRowCol(coupling)
+        parity_mat = np.array(
+            [
+                [0, 1, 0, 1, 1, 0],
+                [1, 0, 1, 0, 0, 0],
+                [1, 0, 0, 0, 1, 1],
+                [1, 1, 1, 0, 1, 0],
+                [1, 0, 1, 0, 1, 0],
+                [1, 0, 1, 0, 1, 1],
+            ]
+        )
+        root = 0
+        terminals = np.array([0, 1, 3])
+        circ = QuantumCircuit(6)
+        permrowcol._eliminate_row(circ, parity_mat, root, terminals)
 
-    # def test_eliminate_row_returns_list(self):
-    #     """Test the output type of eliminate_row"""
-    #     coupling = CouplingMap()
-    #     permrowcol = PermRowCol(coupling)
-    #     parity_mat = np.ndarray(0)
-    #     terminals = np.ndarray(0)
+        self.assertEqual(1, sum(parity_mat[0]))
+        self.assertEqual(1, parity_mat[0, 3])
 
-    #     instance = permrowcol._eliminate_row(parity_mat, 0, terminals)
-
-    #     self.assertIsInstance(instance, list)
-    #     self.assertEqual(instance, [])
-
-    # def test_eliminate_row_returns_correct_list_of_tuples_with_given_input(self):
-    #     """Test eliminate_row method for correctness in case of example parity_matrix and coupling map"""
-    #     coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
-    #     coupling = CouplingMap(coupling_list)
-    #     permrowcol = PermRowCol(coupling)
-    #     parity_mat = np.array(
-    #         [
-    #             [0, 1, 0, 1, 1, 0],
-    #             [1, 0, 1, 0, 0, 0],
-    #             [1, 0, 0, 0, 1, 1],
-    #             [1, 1, 1, 0, 1, 0],
-    #             [1, 0, 1, 0, 1, 0],
-    #             [1, 0, 1, 0, 1, 1],
-    #         ]
-    #     )
-    #     root = 0
-    #     terminals = np.array([0, 1, 3])
-    #     ret = permrowcol._eliminate_row(parity_mat, root, terminals)
-
-    #     self.assertEqual(ret, [(0, 1), (0, 3)])
-
-    # def test_eliminate_row__eliminates_selected_row(self):
-    #     """Test eliminate_row method for correctness in case of example parity_matrix and coupling map"""
-    #     coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
-    #     coupling = CouplingMap(coupling_list)
-    #     permrowcol = PermRowCol(coupling)
-    #     parity_mat = np.array(
-    #         [
-    #             [0, 1, 0, 1, 1, 0],
-    #             [1, 0, 1, 0, 0, 0],
-    #             [1, 0, 0, 0, 1, 1],
-    #             [1, 1, 1, 0, 1, 0],
-    #             [1, 0, 1, 0, 1, 0],
-    #             [1, 0, 1, 0, 1, 1],
-    #         ]
-    #     )
-    #     root = 0
-    #     terminals = np.array([0, 1, 3])
-    #     ret = permrowcol._eliminate_row(parity_mat, root, terminals)
-
-    #     self.assertEqual(1, sum(parity_mat[0]))
-    #     self.assertEqual(1, parity_mat[0, 3])
-
-    # def test_eliminate_row__eliminates_selected_row_2(self):
-    #     """Test eliminate_row method for correctness in case of example parity_matrix and coupling map"""
-    #     coupling_list = [(1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
-    #     coupling = CouplingMap(coupling_list)
-    #     permrowcol = PermRowCol(coupling)
-    #     parity_mat = np.array(
-    #         [
-    #             [0, 0, 0, 1, 0, 0],
-    #             [1, 0, 1, 0, 0, 0],
-    #             [1, 0, 0, 0, 1, 1],
-    #             [0, 1, 0, 0, 0, 0],
-    #             [0, 0, 0, 0, 1, 0],
-    #             [0, 0, 0, 0, 0, 1],
-    #         ]
-    #     )
-    #     root = 1
-    #     terminals = np.array([1, 2, 4, 5])
-    #     ret = permrowcol._eliminate_row(parity_mat, root, terminals)
-    #     self.assertEqual(1, sum(parity_mat[1]))
-    #     self.assertEqual(1, parity_mat[1, 2])
+    def test_eliminate_row_eliminates_selected_row_2(self):
+        """Test eliminate_row method for correctness in case of example parity_matrix and coupling map"""
+        coupling_list = [(1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
+        coupling = CouplingMap(coupling_list)
+        permrowcol = PermRowCol(coupling)
+        parity_mat = np.array(
+            [
+                [0, 0, 0, 1, 0, 0],
+                [1, 0, 1, 0, 0, 0],
+                [1, 0, 0, 0, 1, 1],
+                [0, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 0],
+                [0, 0, 0, 0, 0, 1],
+            ]
+        )
+        root = 1
+        terminals = np.array([1, 2, 4, 5])
+        circ = QuantumCircuit(6)
+        permrowcol._eliminate_row(circ, parity_mat, root, terminals)
+        self.assertEqual(1, sum(parity_mat[1]))
+        self.assertEqual(1, parity_mat[1, 2])
 
     def test_get_nodes_for_eliminate_row_returns_list(self):
         """Tests if _get_nodes_for_eliminate_row returns list"""
