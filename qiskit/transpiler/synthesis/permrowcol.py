@@ -73,12 +73,19 @@ class PermRowCol:
         if len(qubit_alloc) != 0:
             qubit_alloc[qubit_alloc.index(-1)] = self._graph.node_indexes()[0]
 
+        # for easier debugging
+        if sum(sum(parity_mat)) != num_qubits:
+            raise RuntimeError(
+                f"Resulting parity matrix is not a permutation matrix:\n{parity_mat}\n, num qubits: {num_qubits}"
+            )
+
         try:
             perm = Permutation(num_qubits, qubit_alloc)
         except CircuitError:
             raise RuntimeError(
                 f"Formed qubit allocation vector is not a valid permutation pattern: {qubit_alloc}"
             )
+
         # Circuit is created in reverse and the reverse of a cnot-circuit is it's inverse.
         return circuit.inverse(), perm
 
@@ -167,10 +174,10 @@ class PermRowCol:
 
         for edge in post_edges:
             if parity_mat[edge[0], col] == 0:
-                self._add_cnot(circuit, parity_mat, edge[0], edge[1])
+                self._add_cnot(circuit, parity_mat, edge[1], edge[0])
 
         for edge in post_edges:
-            self._add_cnot(circuit, parity_mat, edge[1], edge[0])
+            self._add_cnot(circuit, parity_mat, edge[0], edge[1])
 
     def _eliminate_row(
         self, circuit: QuantumCircuit, parity_mat: np.ndarray, root: int, terminals: np.ndarray
@@ -192,10 +199,10 @@ class PermRowCol:
         for edge in pre_edges:
 
             if edge[1] not in terminals:
-                self._add_cnot(circuit, parity_mat, edge[0], edge[1])
+                self._add_cnot(circuit, parity_mat, edge[1], edge[0])
 
         for edge in post_edges:
-            self._add_cnot(circuit, parity_mat, edge[0], edge[1])
+            self._add_cnot(circuit, parity_mat, edge[1], edge[0])
 
     def _add_cnot(self, circuit: QuantumCircuit, parity_mat: np.ndarray, control: int, target: int):
         """ " Adds a CX between `control` and `target` qubits to the given QuantumCircuit `circuit` and updates the matrix `parity_mat` accordingly.
@@ -216,8 +223,7 @@ class PermRowCol:
             circuit.h(target)
         else:
             circuit.cx(control, target)
-
-        parity_mat[control, :] = (parity_mat[control, :] + parity_mat[target, :]) % 2
+        parity_mat[target, :] = (parity_mat[control, :] + parity_mat[target, :]) % 2
 
     def _get_nodes_for_eliminate_row(
         self, parity_mat: np.ndarray, chosen_column: int, chosen_row: int
