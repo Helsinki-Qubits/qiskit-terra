@@ -64,18 +64,17 @@ class TestPermRowCol(QiskitTestCase):
 
     #     self.assertEqual(perm, expected_perm)
 
-        # circuit, perm = permrowcol.perm_row_col(parity_mat)
+    # circuit, perm = permrowcol.perm_row_col(parity_mat)
 
-        # circuit_matrix = LinearFunction(circuit).linear.T
-        # print("circuit_matrix",circuit_matrix.astype(int),sep="\n")
-        # print("parity_mat",parity_mat.astype(int),sep="\n")
+    # circuit_matrix = LinearFunction(circuit).linear.T
+    # print("circuit_matrix",circuit_matrix.astype(int),sep="\n")
+    # print("parity_mat",parity_mat.astype(int),sep="\n")
 
-
-        # instance = np.matmul(circuit_matrix,parity_mat)%2
-        # instance2 = np.matmul(parity_mat,circuit_matrix)%2
-        # print("original",original_parity_map,sep="\n")
-        # print("instance",instance,sep="\n")
-        # print("instance2",instance2,sep="\n")
+    # instance = np.matmul(circuit_matrix,parity_mat)%2
+    # instance2 = np.matmul(parity_mat,circuit_matrix)%2
+    # print("original",original_parity_map,sep="\n")
+    # print("instance",instance,sep="\n")
+    # print("instance2",instance2,sep="\n")
     def test_perm_row_col_returns_correct_permutation(self):
         """Test that perm_row_col returns correct permutation"""
         coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
@@ -94,31 +93,30 @@ class TestPermRowCol(QiskitTestCase):
         expected_perm = Permutation(6, [5, 3, 1, 0, 4, 2])
 
         perm = permrowcol.perm_row_col(parity_mat)
-        print(perm[0])
 
         self.assertIsNotNone(perm[1])
         self.assertEqual(perm[1], expected_perm)
 
-    # def test_perm_row_col_doesnt_return_cnots_with_identity_matrix(self):
-    #     """Test that permrowcol doesn't return any cnots when matrix as parity matrix is identity matrix"""
-    #     coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
-    #     coupling = CouplingMap(coupling_list)
-    #     permrowcol = PermRowCol(coupling)
-    #     parity_mat = np.identity(6)
+    def test_perm_row_col_doesnt_return_cnots_with_identity_matrix(self):
+        """Test that permrowcol doesn't return any cnots when matrix as parity matrix is identity matrix"""
+        coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
+        coupling = CouplingMap(coupling_list)
+        permrowcol = PermRowCol(coupling)
+        parity_mat = np.identity(6)
 
-    #     instance = permrowcol.perm_row_col(parity_mat)[0]
-    #     self.assertEqual(len(instance.data), 0)
+        instance = permrowcol.perm_row_col(parity_mat)[0]
+        self.assertEqual(len(instance.data), 0)
 
-    # def test_perm_row_col_doesnt_return_cnots_with_identity_matrix_permutation(self):
-    #     """Test that permrowcol doesn't return any cnots when matrix as parity matrix is permutation of identity matrix"""
-    #     coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
-    #     coupling = CouplingMap(coupling_list)
-    #     permrowcol = PermRowCol(coupling)
-    #     parity_mat = np.identity(6)
-    #     np.random.shuffle(parity_mat)
+    def test_perm_row_col_doesnt_return_cnots_with_identity_matrix_permutation(self):
+        """Test that permrowcol doesn't return any cnots when matrix as parity matrix is permutation of identity matrix"""
+        coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
+        coupling = CouplingMap(coupling_list)
+        permrowcol = PermRowCol(coupling)
+        parity_mat = np.identity(6)
+        np.random.shuffle(parity_mat)
 
-    #     instance = permrowcol.perm_row_col(parity_mat)[0]
-    #     self.assertEqual(len(instance.data), 0)
+        instance = permrowcol.perm_row_col(parity_mat)[0]
+        self.assertEqual(len(instance.data), 0)
 
     def test_choose_row_returns_np_int64(self):
         """Test the output type of choose_row"""
@@ -252,7 +250,7 @@ class TestPermRowCol(QiskitTestCase):
         terminals = np.array([1, 0])
         circ = QuantumCircuit(6)
         permrowcol._eliminate_column(circ, parity_mat, root, column, terminals)
-        print("parity_mat: ",parity_mat,sep = "\n" )
+        print("parity_mat: ", parity_mat, sep="\n")
 
         self.assertEqual(1, sum(parity_mat[:, column]))
         self.assertEqual(1, parity_mat[0, column])
@@ -501,7 +499,7 @@ class TestPermRowCol(QiskitTestCase):
         permrowcol._reduce_graph(2)
         self.assertCountEqual(permrowcol._graph.edge_list(), [])
 
-    # def test_no_hadamard_gates_added_with_complete_graph(self):
+        # def test_no_hadamard_gates_added_with_complete_graph(self):
         """Test that no hadamard gates are added if graph has bidirectional edges"""
         n = 6
         parity_mat = build_random_parity_matrix(42, n, 60)
@@ -536,7 +534,7 @@ class TestPermRowCol(QiskitTestCase):
         self.assertEqual(h_gates % 4, 0)
 
     def test_add_cnot_never_adds_hadamard_gates_if_opposite_cnot_is_allowed(self):
-    #     """Test add cnots does not add hadamards if the opposite edge is allowed, and so the existing hadamards are not unnecessary"""
+        #     """Test add cnots does not add hadamards if the opposite edge is allowed, and so the existing hadamards are not unnecessary"""
         backend = FakeTenerife()
         data = backend.properties().to_dict()["gates"]
         coupling_list = [tuple(item["qubits"]) for item in data if item["gate"] == "cx"]
@@ -599,22 +597,6 @@ class TestPermRowCol(QiskitTestCase):
 
         self.assertEqual(h_gates, 0)
 
-    def test_perm_row_col_returns_valid_output_with_a_common_case(self):
-        """Test the output of perm_row_col for correctness"""
-        backend = FakeManilaV2()
-        coupling_map = backend.coupling_map
-        coupling = CouplingMap(coupling_map)
-        permrowcol = PermRowCol(coupling)
-        parity_mat = build_random_parity_matrix(43, 5, 60).astype(int)
-        original_parity_map = parity_mat.copy()
-        circuit, perm = permrowcol.perm_row_col(parity_mat)
-
-        circuit_matrix = LinearFunction(circuit).linear.T
-
-        instance = np.matmul(parity_mat, circuit_matrix)
-
-        self.assertEqual(np.array_equal(instance, original_parity_map), True)
-
     def test_add_cnot_adds_corresponding_row_operations_on_parity_matrix(self):
         coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
         coupling = CouplingMap(coupling_list)
@@ -634,38 +616,41 @@ class TestPermRowCol(QiskitTestCase):
         circ = QuantumCircuit(6)
 
         permrowcol._add_cnot(circ, parity_mat, control, target)
-    #     correct_permutation_matrix = np.array(
-    #         [
-    #             [0, 0, 0, 1, 0, 0],
-    #             [0, 0, 1, 0, 0, 0],
-    #             [0, 0, 0, 0, 0, 1],
-    #             [0, 1, 0, 0, 0, 0],
-    #             [0, 0, 0, 0, 1, 0],
-    #             [1, 0, 0, 0, 0, 0],
-    #         ]
-    #     )
+        #     correct_permutation_matrix = np.array(
+        #         [
+        #             [0, 0, 0, 1, 0, 0],
+        #             [0, 0, 1, 0, 0, 0],
+        #             [0, 0, 0, 0, 0, 1],
+        #             [0, 1, 0, 0, 0, 0],
+        #             [0, 0, 0, 0, 1, 0],
+        #             [1, 0, 0, 0, 0, 0],
+        #         ]
+        #     )
 
-    #     self.assertTrue(len(circ.data) == 1)
+        #     self.assertTrue(len(circ.data) == 1)
         self.assertEqual(sum(parity_mat[:, 3]), 1)
+
     #     self.assertEqual(parity_mat[0, 3], 1)
 
-    def test_perm_row_col_returns_valid_output_with_a_common_case(self):
-        """Test the output of perm_row_col for correctness"""
-        backend = FakeManilaV2()
-        coupling_map = backend.coupling_map
-        coupling = CouplingMap(coupling_map)
-        permrowcol = PermRowCol(coupling)
-        parity_mat = build_random_parity_matrix(42, 5, 60).astype(int)
-        original_parity_map = parity_mat.copy()
-        print("original")
-        print(original_parity_map)
-        circuit, perm = permrowcol.perm_row_col(parity_mat)
+    # def test_perm_row_col_returns_valid_output_with_a_common_case(self):
+    #     """Test the output of perm_row_col for correctness"""
+    #     backend = FakeManilaV2()
+    #     coupling_map = backend.coupling_map
+    #     coupling = CouplingMap(coupling_map)
+    #     permrowcol = PermRowCol(coupling)
+    #     parity_mat = build_random_parity_matrix(42, 5, 60).astype(int)
+    #     original_parity_map = parity_mat.copy()
 
-        circuit_matrix = LinearFunction(circuit).linear.T
+    #     #print(original_parity_map)
+    #     circuit, perm = permrowcol.perm_row_col(parity_mat)
 
-        instance = np.matmul(parity_mat, circuit_matrix)
+    #     circuit_matrix = LinearFunction(circuit).linear.astype(int)
 
-        # self.assertEqual(np.array_equal(instance, original_parity_map), True)
+    #     instance = np.matmul(parity_mat, circuit_matrix)
+    #     print("instance: ",instance,sep = '\n' )
+    #     print("original_parity_map: ",original_parity_map,sep = '\n' )
+
+    #     self.assertEqual(np.array_equal(instance, original_parity_map), True)
 
     # def test_add_cnot_adds_corresponding_row_operations_on_parity_matrix(self):
     #     coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
