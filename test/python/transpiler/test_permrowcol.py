@@ -20,26 +20,26 @@ class TestPermRowCol(QiskitTestCase):
 
     def test_perm_row_col_sanity_check(self):
         """Compare the output matrices between PermRowCol and qiskit's graysynth"""
-        
+
         backend = FakeManilaV2()
         coupling_map = backend.coupling_map
         coupling = CouplingMap(coupling_map)
         permrowcol = PermRowCol(coupling)
-        #data = backend.properties().to_dict()["gates"]
-        #print("item:")
-        #for item in data:
+        # data = backend.properties().to_dict()["gates"]
+        # print("item:")
+        # for item in data:
         #    print(item)
-        #coupling_list = [tuple(item["qubits"]) for item in data if item["gate"] == "cx"]
-        #coupling = CouplingMap(coupling_list)
-        #coupling = backend.coupling_map
-        #gates = [item["gate"] for item in data]
+        # coupling_list = [tuple(item["qubits"]) for item in data if item["gate"] == "cx"]
+        # coupling = CouplingMap(coupling_list)
+        # coupling = backend.coupling_map
+        # gates = [item["gate"] for item in data]
 
         print("coupling")
         print(coupling)
-        #print("gates")
-        #print(gates)
+        # print("gates")
+        # print(gates)
         n = 5
-        #parity_mat = build_random_parity_matrix(42, n, 60)
+        # parity_mat = build_random_parity_matrix(42, n, 60)
         parity_mat = np.array(
             [
                 [0, 0, 0, 1, 0, 0],
@@ -53,24 +53,24 @@ class TestPermRowCol(QiskitTestCase):
         print("parity matrix")
         print(parity_mat)
 
-        #c_linearfunc = LinearFunction(parity_mat).synthesize()
+        # c_linearfunc = LinearFunction(parity_mat).synthesize()
 
         c_synth_cnot = synth_cnot_count_full_pmh(parity_mat)
         print("circuit with synth_cnot_count_full_pmh")
         print(c_synth_cnot)
-        #print("circuit with linear function")
-        #print(c_linearfunc)
+        # print("circuit with linear function")
+        # print(c_linearfunc)
 
-        #c_gray = graysynth(parity_mat.copy(), gates)
-        #print("circuit with graysynth:")
-        #print(c_gray)
+        # c_gray = graysynth(parity_mat.copy(), gates)
+        # print("circuit with graysynth:")
+        # print(c_gray)
         permrowcol = PermRowCol(coupling)
         c_permrowcol, perm_permrowcol = permrowcol.perm_row_col(parity_mat.copy())
 
-        #Let's get rid of Hadamards!
-        
-        #c_prc_no_hadamard = QuantumCircuit(len(c_permrowcol.qubits))
-        #for index, instruction in enumerate(c_permrowcol):
+        # Let's get rid of Hadamards!
+
+        # c_prc_no_hadamard = QuantumCircuit(len(c_permrowcol.qubits))
+        # for index, instruction in enumerate(c_permrowcol):
         #    if instruction[0].name == "cx":
         #        qubit_0 = instruction[1][0]
         #        qubit_1 = instruction[1][1]
@@ -81,15 +81,13 @@ class TestPermRowCol(QiskitTestCase):
         #            print("hadamard gates?:")
         #            print(c_permrowcol[index - 2])
 
-
-            #if instruction[0].name == "h":
-            #    print("hadamard")
-            #    print(instruction)
-            #    print("hadamard qubits")
-            #    print(instruction[1])
+        # if instruction[0].name == "h":
+        #    print("hadamard")
+        #    print(instruction)
+        #    print("hadamard qubits")
+        #    print(instruction[1])
         print("circuit with permrowcol:")
         print(c_permrowcol)
-
 
     def test_perm_row_col_returns_two_circuits(self):
         """Test the output type of perm_row_col"""
