@@ -167,7 +167,7 @@ class PermRowCol:
 
         for edge in post_edges:
             if parity_mat[edge[0], col] == 0:
-                self._add_cnot(circuit, parity_mat, edge[1], edge[0])
+                self._add_cnot(circuit, parity_mat, edge[0], edge[1])
 
         for edge in post_edges:
             self._add_cnot(circuit, parity_mat, edge[1], edge[0])
@@ -189,11 +189,11 @@ class PermRowCol:
 
         for edge in pre_edges:
 
-            if edge[0] not in terminals:
-                self._add_cnot(circuit, parity_mat, edge[1], edge[0])
+            if edge[1] not in terminals:
+                self._add_cnot(circuit, parity_mat, edge[0], edge[1])
 
         for edge in post_edges:
-            self._add_cnot(circuit, parity_mat, edge[1], edge[0])
+            self._add_cnot(circuit, parity_mat, edge[0], edge[1])
 
     def _add_cnot(self, circuit: QuantumCircuit, parity_mat: np.ndarray, control: int, target: int):
         """" Adds a CX between `control` and `target` qubits to the given QuantumCircuit `circuit` and updates the matrix `parity_mat` accordingly.
@@ -206,19 +206,20 @@ class PermRowCol:
             target (int) : the target qubit for the CNOT
 
         """
-        if (control, target) not in self._coupling_map:
-            circuit.h(control)
-            circuit.h(target)
-            circuit.cx(target, control)
-            circuit.h(control)
-            circuit.h(target)
-        else:
-            circuit.cx(control, target)
-
-        print("parity mat before:", parity_mat, sep="\n")
-        print("adding row", control, "to row", target)
-        parity_mat[target, :] = (parity_mat[control, :] + parity_mat[target, :]) % 2
-        print("parity mat after:", parity_mat, sep="\n")
+        # if (control, target) not in self._coupling_map:
+        #     circuit.h(control)
+        #     circuit.h(target)
+        #     circuit.cx(target, control)
+        #     circuit.h(control)
+        #     circuit.h(target)
+        # else:
+        #     circuit.cx(control, target)
+        circuit.cx(control, target)
+        # print("parity mat before:", parity_mat, sep="\n")
+        # print("adding row", control, "to row", target)
+        # parity_mat[target, :] = (parity_mat[control, :] + parity_mat[target, :]) % 2 ORIGINAL
+        parity_mat[control, :] = (parity_mat[control, :] + parity_mat[target, :]) % 2
+        # print("parity mat after:", parity_mat, sep="\n")
 
     def _get_nodes_for_eliminate_row(
         self, parity_mat: np.ndarray, chosen_column: int, chosen_row: int
