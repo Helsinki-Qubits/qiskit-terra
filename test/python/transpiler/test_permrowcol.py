@@ -534,9 +534,9 @@ class TestPermRowCol(QiskitTestCase):
         coupling = CouplingMap(coupling_list)
         permrowcol = PermRowCol(coupling)
         circuit, perm = permrowcol.perm_row_col(parity_mat)
-        circuit_matrix = LinearFunction(circuit).linear.astype(int).T
+        circuit_matrix = LinearFunction(circuit).linear
         instance = np.matmul(circuit_matrix, parity_mat)
-        self.assertEqual(np.array_equal(instance, original_parity_map), True)
+        self.assertTrue(np.array_equal(instance, original_parity_map))
 
 
 if __name__ == "__main__":
