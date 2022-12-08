@@ -2,24 +2,18 @@
 
 import unittest
 import numpy as np
+import retworkx as rx
 
 from qiskit.test import QiskitTestCase
 from qiskit.transpiler.synthesis.permrowcol import PermRowCol
-<<<<<<< HEAD
 from qiskit.circuit.library import LinearFunction
-=======
->>>>>>> perm-row-col
-from qiskit import QuantumCircuit
+from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.transpiler import CouplingMap
 from qiskit.circuit.library.generalized_gates.permutation import Permutation
 from qiskit.transpiler.synthesis.matrix_utils import build_random_parity_matrix
-<<<<<<< HEAD
-
-=======
 from qiskit.providers.fake_provider import FakeTenerife, FakeManilaV2
 from qiskit.circuit.library.generalized_gates.linear_function import LinearFunction
 from qiskit.quantum_info import Statevector
->>>>>>> perm-row-col
 
 
 class TestPermRowCol(QiskitTestCase):
@@ -71,6 +65,13 @@ class TestPermRowCol(QiskitTestCase):
         circuit, perm = permrowcol.perm_row_col(parity_mat)
 
         self.assertEqual(perm, expected_perm)
+
+        # circuit, perm = permrowcol.perm_row_col(parity_mat)
+
+        circuit_matrix = LinearFunction(circuit).linear.T
+
+        instance = np.matmul(circuit_matrix, parity_mat) % 2
+        instance2 = np.matmul(parity_mat, circuit_matrix) % 2
 
     def test_perm_row_col_returns_correct_permutation(self):
         """Test that perm_row_col returns correct permutation"""
@@ -732,30 +733,11 @@ class TestPermRowCol(QiskitTestCase):
         control = 0
         circ = QuantumCircuit(6)
 
-<<<<<<< HEAD
-        instance = permrowcol.perm_row_col(parity_mat)
-        mat = np.array(LinearFunction(instance[0]).params[0]).astype(int)
-        self.assertEqual(np.array_equal(parity_mat, correct_permutation_matrix), True)
-=======
         permrowcol._add_cnot(circ, parity_mat, control, target)
 
         self.assertTrue(len(circ.data) == 1)
         self.assertEqual(sum(parity_mat[:, 3]), 1)
         self.assertEqual(parity_mat[0, 3], 1)
->>>>>>> perm-row-col
-
-    def test_common_case_with_complete_graph(self):
-        """Test common_case with complete graph"""
-        n = 6
-        parity_mat = build_random_parity_matrix(42, n, 60)
-        coupling_list = [(i, j) for i in range(n) for j in range(n) if i != j]
-        original_parity_map = parity_mat.copy()
-        coupling = CouplingMap(coupling_list)
-        permrowcol = PermRowCol(coupling)
-        circuit, perm = permrowcol.perm_row_col(parity_mat)
-        circuit_matrix = LinearFunction(circuit).linear
-        instance = np.matmul(circuit_matrix, parity_mat)
-        self.assertTrue(np.array_equal(instance, original_parity_map))
 
 
 if __name__ == "__main__":
