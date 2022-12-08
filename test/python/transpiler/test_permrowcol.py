@@ -710,11 +710,9 @@ class TestPermRowCol(QiskitTestCase):
 
         circuit_matrix = LinearFunction(circuit).linear
 
-        instance = np.matmul(parity_mat, circuit_matrix)
-    #     print("instance: ",instance,sep = '\n' )
-    #     print("original_parity_map: ",original_parity_map,sep = '\n' )
+        instance = np.matmul(circuit_matrix, parity_mat)
 
-        self.assertEqual(np.array_equal(instance, original_parity_map), True)  # False
+        self.assertTrue(np.array_equal(instance, original_parity_map))
 
     def test_add_cnot_adds_corresponding_row_operations_on_parity_matrix(self):
         coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
