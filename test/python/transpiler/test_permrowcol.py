@@ -65,13 +65,6 @@ class TestPermRowCol(QiskitTestCase):
 
         self.assertEqual(perm, expected_perm)
 
-        # circuit, perm = permrowcol.perm_row_col(parity_mat)
-
-        circuit_matrix = LinearFunction(circuit).linear.T
-
-        instance = np.matmul(circuit_matrix, parity_mat) % 2
-        instance2 = np.matmul(parity_mat, circuit_matrix) % 2
-
     def test_perm_row_col_returns_correct_permutation(self):
         """Test that perm_row_col returns correct permutation"""
         coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
