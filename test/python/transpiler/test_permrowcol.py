@@ -65,7 +65,7 @@ class TestPermRowCol(QiskitTestCase):
 
         self.assertEqual(perm, expected_perm)
 
-    # circuit, perm = permrowcol.perm_row_col(parity_mat)
+        # circuit, perm = permrowcol.perm_row_col(parity_mat)
 
         circuit_matrix = LinearFunction(circuit).linear.T
 

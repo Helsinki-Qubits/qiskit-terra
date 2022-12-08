@@ -43,8 +43,7 @@ class PermRowColSynthesis(LinearFunctionsSynthesis):
 
         # alt parity matrix of dag circuit, dtype=bool
         # parity_mat = LinearFunction(dag_to_circuit(dag)).linear
-
-        parity_mat = np.identity(3)
+        parity_mat = np.identity(self._coupling_map.size())
         permrowcol = PermRowCol(self._coupling_map)
         circuit, perm = permrowcol.perm_row_col(parity_mat)
         return circuit_to_dag(circuit)

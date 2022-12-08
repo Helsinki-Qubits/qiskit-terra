@@ -74,7 +74,7 @@ class PermRowCol:
             qubit_alloc[qubit_alloc.index(-1)] = self._graph.node_indexes()[0]
 
         # for easier debugging
-        if sum(sum(parity_mat)) != num_qubits:
+        if parity_mat.size > 0 and sum(sum(parity_mat)) != num_qubits:
             raise RuntimeError(
                 f"Resulting parity matrix is not a permutation matrix:\n{parity_mat}\n, num qubits: {num_qubits}"
             )
