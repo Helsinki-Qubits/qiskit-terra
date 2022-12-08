@@ -89,6 +89,26 @@ class TestPermRowCol(QiskitTestCase):
         print("circuit with permrowcol:")
         print(c_permrowcol)
 
+    def test_perm_row_col_sanity(self):
+        """Test perm_row_col for sanity"""
+        backend = FakeManilaV2()
+        coupling_map = backend.coupling_map
+        coupling = CouplingMap(coupling_map)
+
+        parity_mat = build_random_parity_matrix(42, 5, 60).astype(int)
+
+        c_synth_cnot = synth_cnot_count_full_pmh(parity_mat.copy())
+
+        permrowcol = PermRowCol(coupling)
+        dag, perm = permrowcol.perm_row_col(parity_mat)
+        perm_parity_mat = LinearFunction(dag).linear
+
+        synth_parity = LinearFunction(c_synth_cnot).linear
+
+        instance = np.matmul(parity_mat, perm_parity_mat)
+
+        # self.assertTrue(np.array_equal(instance, synth_parity))
+
     def test_perm_row_col_returns_two_circuits(self):
         """Test the output type of perm_row_col"""
         coupling = CouplingMap()
