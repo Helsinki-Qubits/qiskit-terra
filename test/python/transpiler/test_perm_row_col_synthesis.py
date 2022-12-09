@@ -10,6 +10,7 @@ from qiskit import QuantumCircuit
 from qiskit.converters import circuit_to_dag
 from qiskit.dagcircuit.dagcircuit import DAGCircuit
 from qiskit.transpiler import CouplingMap
+from qiskit.converters import dag_to_circuit
 
 
 class TestPermRowColSynthesis(QiskitTestCase):
@@ -30,6 +31,13 @@ class TestPermRowColSynthesis(QiskitTestCase):
         instance = synthesis.run(dag)
 
         self.assertIsInstance(instance, DAGCircuit)
+
+    def test_permrowcolsynthesis_returns_the_same_dag_as_linearfunctionsynthesis(self):
+        coupling = CouplingMap()
+        circuit = QuantumCircuit()
+        dag = circuit_to_dag(circuit)
+        synthesis_permrowcol = PermRowColSynthesis(coupling)
+        synthesis_linearfunction = LinearFunctionsSynthesis()
 
 
 if __name__ == "__main__":
