@@ -13,7 +13,7 @@
 """Permrowcol-algorithm functionality implementation"""
 
 import numpy as np
-import retworkx as rx
+import rustworkx as rx
 
 from qiskit.transpiler import CouplingMap
 from qiskit import QuantumRegister, QuantumCircuit
