@@ -2,7 +2,7 @@
 
 import unittest
 import numpy as np
-import rustworkx as rx
+import retworkx as rx
 
 from qiskit.test import QiskitTestCase
 from qiskit.transpiler.synthesis.permrowcol import PermRowCol

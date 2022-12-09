@@ -13,7 +13,7 @@
 """Helper functions for hadling graphs"""
 
 import numpy as np
-import rustworkx as rx
+import retworkx as rx
 
 from qiskit.transpiler import CouplingMap
 
