@@ -7,10 +7,13 @@ from qiskit.test import QiskitTestCase
 from qiskit.transpiler.passes.synthesis.perm_row_col_synthesis import PermRowColSynthesis
 from qiskit.transpiler.passes.synthesis.linear_functions_synthesis import LinearFunctionsSynthesis
 from qiskit import QuantumCircuit
-from qiskit.converters import circuit_to_dag
+from qiskit.converters import circuit_to_dag, dag_to_circuit
+
+from qiskit.transpiler.synthesis.matrix_utils import build_random_parity_matrix
 from qiskit.dagcircuit.dagcircuit import DAGCircuit
 from qiskit.transpiler import CouplingMap
-from qiskit.converters import dag_to_circuit
+from qiskit.circuit.library.generalized_gates.linear_function import LinearFunction
+from qiskit.providers.fake_provider import FakeTenerife, FakeManilaV2
 
 
 class TestPermRowColSynthesis(QiskitTestCase):
@@ -32,12 +35,56 @@ class TestPermRowColSynthesis(QiskitTestCase):
 
         self.assertIsInstance(instance, DAGCircuit)
 
-    def test_permrowcolsynthesis_returns_the_same_dag_as_linearfunctionsynthesis(self):
-        coupling = CouplingMap()
-        circuit = QuantumCircuit()
-        dag = circuit_to_dag(circuit)
+    def test_sanity_check(self):
+        backend = FakeTenerife()
+        data = backend.properties().to_dict()["gates"]
+        coupling_list = [tuple(item["qubits"]) for item in data if item["gate"] == "cx"]
+        coupling = CouplingMap(coupling_list)
+        print("coupling map:")
+        print(coupling)
+
+        random_parity_matrix = build_random_parity_matrix(13, 5, 60).astype(int)
+        print("random parity matrix:")
+        print(random_parity_matrix)
+        n = 5
+
+        random_circuit = QuantumCircuit(n)
+        for r in range(n):
+            for c in range(n):
+                if random_parity_matrix[r][c] == 1:
+                    try:
+                        random_circuit.cx(r, c)
+                    except:
+                        pass
+        random_circuit_copy = random_circuit.copy()
+        print("random circuit")
+        print(random_circuit)
+
+        dag_permrowcol = circuit_to_dag(random_circuit)
+        dag_linearfunction = circuit_to_dag(random_circuit_copy)
+
         synthesis_permrowcol = PermRowColSynthesis(coupling)
         synthesis_linearfunction = LinearFunctionsSynthesis()
+
+        dag_permrowcol = synthesis_permrowcol.run(dag_permrowcol)
+        dag_linearfunction = synthesis_linearfunction.run(dag_linearfunction)
+
+        circuit_permrowcol = dag_to_circuit(dag_permrowcol)
+        circuit_linearfunction = dag_to_circuit(dag_linearfunction)
+        print("circuits:")
+        print("permrowcol:")
+        print(circuit_permrowcol)
+        print("linearfunction:")
+        print(circuit_linearfunction)
+
+        parity_mat_permrowcol = LinearFunction(circuit_permrowcol).linear.astype(int)
+        parity_mat_linearfunction = LinearFunction(circuit_linearfunction).linear.astype(int)
+
+        print("parity matrices:")
+        print("permrowcol:")
+        print(parity_mat_permrowcol)
+        print("linearfunction")
+        print(parity_mat_linearfunction)
 
 
 if __name__ == "__main__":
