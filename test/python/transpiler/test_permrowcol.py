@@ -2,7 +2,7 @@
 
 import unittest
 import numpy as np
-import retworkx as rx
+import rustworkx as rx
 
 from qiskit.test import QiskitTestCase
 from qiskit.transpiler.synthesis.permrowcol import PermRowCol
@@ -13,6 +13,7 @@ from qiskit.transpiler.synthesis.matrix_utils import build_random_parity_matrix
 from qiskit.providers.fake_provider import FakeTenerife, FakeManilaV2
 from qiskit.circuit.library.generalized_gates.linear_function import LinearFunction
 from qiskit.quantum_info import Statevector
+from qiskit.transpiler.synthesis.graph_utils import noncutting_vertices
 
 
 class TestPermRowCol(QiskitTestCase):
@@ -193,8 +194,40 @@ class TestPermRowCol(QiskitTestCase):
 
         self.assertEqual(index, 2)
 
-    def test_eliminate_column_modifies_circuit_correctly(self):
-        """Test that eliminate_column modifies the given circuit correctly"""
+    def test_eliminate_column_returns_list(self):
+        """Test the output type of eliminate_column"""
+        coupling = CouplingMap()
+        permrowcol = PermRowCol(coupling)
+        parity_mat = np.ndarray(0)
+        terminals = np.ndarray(0)
+
+        instance = permrowcol.eliminate_column(parity_mat, 0, 0, terminals)
+
+        self.assertIsInstance(instance, list)
+
+    def test_eliminate_column_identity_column(self):
+        """Test that eliminate column doesn't return any cnots when the given
+        terminal list is empty"""
+        coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
+
+        coupling = CouplingMap(coupling_list)
+        permrowcol = PermRowCol(coupling)
+        qubit_alloc = [-1] * len(permrowcol._graph.node_indexes())
+        parity_mat = np.identity(6)
+        np.random.shuffle(parity_mat)
+        n_vertices = noncutting_vertices(coupling)
+        row = permrowcol.choose_row(n_vertices, parity_mat)
+
+        cols = [i for i in range(len(qubit_alloc)) if qubit_alloc[i] == -1]
+        column = permrowcol.choose_column(parity_mat, cols, row)
+        nodes = [node for node in permrowcol._graph.node_indexes() if parity_mat[node, column] == 1]
+
+        ret = permrowcol.eliminate_column(parity_mat, row, column, nodes)
+
+        self.assertEqual(ret, [])
+
+    def test_eliminate_column_returns_correct_list_of_tuples_with_given_input(self):
+        """Test eliminate_column method for correctness in case of example parity_matrix and coupling map"""
         coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
         coupling = CouplingMap(coupling_list)
         permrowcol = PermRowCol(coupling)
@@ -245,10 +278,34 @@ class TestPermRowCol(QiskitTestCase):
         self.assertEqual(1, sum(parity_mat[:, column]))
         self.assertEqual(1, parity_mat[0, column])
 
-    # test for debugging
-    def test_eliminate_column_eliminates_selected_column3(self):
+    def test_eliminate_column_doesnt_return_invalid_tuples(self):
+        """Test that eliminate column doesn't return any tuples that are
+        restricted by the coupling map"""
         coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
         coupling = CouplingMap(coupling_list)
+        permrowcol = PermRowCol(coupling)
+        parity_mat = np.array(
+            [
+                [0, 1, 0, 1, 1, 0],
+                [1, 1, 1, 1, 1, 0],
+                [1, 0, 0, 0, 1, 1],
+                [1, 1, 1, 0, 1, 0],
+                [1, 0, 1, 0, 1, 0],
+                [1, 0, 1, 0, 1, 1],
+            ]
+        )
+
+        root = 1
+        column = 2
+        terminals = np.array([root, 3, 4, 5])
+        ret = permrowcol.eliminate_column(parity_mat, root, column, terminals)
+
+        self.assertTrue((2, 3) not in ret)
+        self.assertTrue((2, 4) not in ret)
+
+    def test_eliminate_row_returns_list(self):
+        """Test the output type of eliminate_row"""
+        coupling = CouplingMap()
         permrowcol = PermRowCol(coupling)
         parity_mat = np.array(
             [
@@ -730,6 +787,67 @@ class TestPermRowCol(QiskitTestCase):
         self.assertTrue(len(circ.data) == 1)
         self.assertEqual(sum(parity_mat[:, 3]), 1)
         self.assertEqual(parity_mat[0, 3], 1)
+
+    def test_eliminate_row_doesnt_change_already_eliminated_column(self):
+        """Test that eliminate_row doesn't mess up the already eliminated column"""
+        coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
+        coupling = CouplingMap(coupling_list)
+        permrowcol = PermRowCol(coupling)
+        parity_mat = np.array(
+            [
+                [1, 1, 1, 1, 1, 0],
+                [1, 0, 1, 0, 0, 0],
+                [1, 0, 0, 0, 1, 1],
+                [1, 1, 1, 0, 1, 0],
+                [1, 0, 1, 0, 1, 0],
+                [1, 0, 1, 0, 1, 1],
+            ]
+        )
+        root = 0
+        terminals = np.array([root, 1, 3])
+        permrowcol.eliminate_row(parity_mat, root, terminals)
+
+        self.assertEqual(1, sum(parity_mat[:, 3]))
+        self.assertEqual(1, parity_mat[0, 3])
+
+    def test_eliminate_row_identity_column(self):
+        """Test that eliminate row doesn't return any cnots when parity matrix is permutation of identity matrix"""
+        coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
+        coupling = CouplingMap(coupling_list)
+        permrowcol = PermRowCol(coupling)
+
+        parity_mat = np.identity(6)
+        np.random.shuffle(parity_mat)
+
+        n_vertices = noncutting_vertices(coupling)
+        row = permrowcol.choose_row(n_vertices, parity_mat)
+        terminals = [row]
+
+        ret = permrowcol.eliminate_row(parity_mat, row, terminals)
+        self.assertEqual(ret, [])
+
+    def test_eliminate_row_doesnt_return_invalid_tuples(self):
+        """Test that eliminate_row doesn't return any tuples that are
+        restricted by the coupling map"""
+        coupling_list = [(1, 4), (2, 5), (3, 4), (4, 5)]
+        coupling = CouplingMap(coupling_list)
+        permrowcol = PermRowCol(coupling)
+        parity_mat = np.array(
+            [
+                [0, 0, 0, 1, 0, 0],
+                [1, 0, 1, 0, 0, 0],
+                [1, 0, 0, 0, 1, 1],
+                [0, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 0],
+                [0, 0, 0, 0, 0, 1],
+            ]
+        )
+        root = 1
+        terminals = np.array([1, 2, 4, 5])
+        ret = permrowcol.eliminate_row(parity_mat, root, terminals)
+
+        self.assertTrue((5, 1) not in ret)
+        self.assertTrue((2, 1) not in ret)
 
 
 if __name__ == "__main__":
