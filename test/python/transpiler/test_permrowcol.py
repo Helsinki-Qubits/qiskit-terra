@@ -201,7 +201,7 @@ class TestPermRowCol(QiskitTestCase):
         parity_mat = np.ndarray(0)
         terminals = np.ndarray(0)
 
-        instance = permrowcol.eliminate_column(parity_mat, 0, 0, terminals)
+        instance = permrowcol._eliminate_column(parity_mat, 0, 0, terminals)
 
         self.assertIsInstance(instance, list)
 
@@ -215,14 +215,15 @@ class TestPermRowCol(QiskitTestCase):
         qubit_alloc = [-1] * len(permrowcol._graph.node_indexes())
         parity_mat = np.identity(6)
         np.random.shuffle(parity_mat)
-        n_vertices = noncutting_vertices(coupling)
+        graph = pydigraph_to_pygraph(coupling.graph)
+        n_vertices = noncutting_vertices(graph)
         row = permrowcol.choose_row(n_vertices, parity_mat)
 
         cols = [i for i in range(len(qubit_alloc)) if qubit_alloc[i] == -1]
         column = permrowcol.choose_column(parity_mat, cols, row)
         nodes = [node for node in permrowcol._graph.node_indexes() if parity_mat[node, column] == 1]
 
-        ret = permrowcol.eliminate_column(parity_mat, row, column, nodes)
+        ret = permrowcol._eliminate_column(parity_mat, row, column, nodes)
 
         self.assertEqual(ret, [])
 
@@ -298,7 +299,7 @@ class TestPermRowCol(QiskitTestCase):
         root = 1
         column = 2
         terminals = np.array([root, 3, 4, 5])
-        ret = permrowcol.eliminate_column(parity_mat, root, column, terminals)
+        ret = permrowcol._eliminate_column(parity_mat, root, column, terminals)
 
         self.assertTrue((2, 3) not in ret)
         self.assertTrue((2, 4) not in ret)
@@ -818,7 +819,7 @@ class TestPermRowCol(QiskitTestCase):
         )
         root = 0
         terminals = np.array([root, 1, 3])
-        permrowcol.eliminate_row(parity_mat, root, terminals)
+        permrowcol._eliminate_row(parity_mat, root, terminals)
 
         self.assertEqual(1, sum(parity_mat[:, 3]))
         self.assertEqual(1, parity_mat[0, 3])
@@ -832,11 +833,12 @@ class TestPermRowCol(QiskitTestCase):
         parity_mat = np.identity(6)
         np.random.shuffle(parity_mat)
 
-        n_vertices = noncutting_vertices(coupling)
+        graph = pydigraph_to_pygraph(coupling.graph)
+        n_vertices = noncutting_vertices(graph)
         row = permrowcol.choose_row(n_vertices, parity_mat)
         terminals = [row]
 
-        ret = permrowcol.eliminate_row(parity_mat, row, terminals)
+        ret = permrowcol._eliminate_row(parity_mat, row, terminals)
         self.assertEqual(ret, [])
 
     def test_eliminate_row_doesnt_return_invalid_tuples(self):
@@ -857,7 +859,7 @@ class TestPermRowCol(QiskitTestCase):
         )
         root = 1
         terminals = np.array([1, 2, 4, 5])
-        ret = permrowcol.eliminate_row(parity_mat, root, terminals)
+        ret = permrowcol._eliminate_row(parity_mat, root, terminals)
 
         self.assertTrue((5, 1) not in ret)
         self.assertTrue((2, 1) not in ret)
