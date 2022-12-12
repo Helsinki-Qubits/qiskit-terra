@@ -8,11 +8,8 @@ from qiskit.test import QiskitTestCase
 from qiskit.transpiler.synthesis.permrowcol import PermRowCol
 from qiskit import QuantumCircuit
 from qiskit.transpiler import CouplingMap
-<<<<<<< HEAD
 from qiskit.circuit.library.generalized_gates.permutation import Permutation
-=======
 from qiskit.transpiler.synthesis.graph_utils import noncutting_vertices
->>>>>>> ed00181fb7b5b80d0d5c1511bdc9104d79e6a8b3
 
 
 class TestPermRowCol(QiskitTestCase):
