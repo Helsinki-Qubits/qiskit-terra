@@ -13,7 +13,7 @@ from qiskit.transpiler.synthesis.matrix_utils import build_random_parity_matrix
 from qiskit.providers.fake_provider import FakeTenerife, FakeManilaV2
 from qiskit.circuit.library.generalized_gates.linear_function import LinearFunction
 from qiskit.quantum_info import Statevector
-from qiskit.transpiler.synthesis.graph_utils import noncutting_vertices
+from qiskit.transpiler.synthesis.graph_utils import noncutting_vertices, pydigraph_to_pygraph
 
 
 class TestPermRowCol(QiskitTestCase):
@@ -200,8 +200,9 @@ class TestPermRowCol(QiskitTestCase):
         permrowcol = PermRowCol(coupling)
         parity_mat = np.ndarray(0)
         terminals = np.ndarray(0)
+        circ = QuantumCircuit(0)
 
-        instance = permrowcol._eliminate_column(parity_mat, 0, 0, terminals)
+        instance = permrowcol._eliminate_column(circ, parity_mat, 0, 0, terminals)
 
         self.assertIsInstance(instance, list)
 
@@ -222,8 +223,9 @@ class TestPermRowCol(QiskitTestCase):
         cols = [i for i in range(len(qubit_alloc)) if qubit_alloc[i] == -1]
         column = permrowcol.choose_column(parity_mat, cols, row)
         nodes = [node for node in permrowcol._graph.node_indexes() if parity_mat[node, column] == 1]
+        circ = QuantumCircuit(6)
 
-        ret = permrowcol._eliminate_column(parity_mat, row, column, nodes)
+        ret = permrowcol._eliminate_column(circ, parity_mat, row, column, nodes)
 
         self.assertEqual(ret, [])
 
@@ -299,7 +301,8 @@ class TestPermRowCol(QiskitTestCase):
         root = 1
         column = 2
         terminals = np.array([root, 3, 4, 5])
-        ret = permrowcol._eliminate_column(parity_mat, root, column, terminals)
+        circ = QuantumCircuit(6)
+        ret = permrowcol._eliminate_column(circ, parity_mat, root, column, terminals)
 
         self.assertTrue((2, 3) not in ret)
         self.assertTrue((2, 4) not in ret)
@@ -819,7 +822,8 @@ class TestPermRowCol(QiskitTestCase):
         )
         root = 0
         terminals = np.array([root, 1, 3])
-        permrowcol._eliminate_row(parity_mat, root, terminals)
+        circ = QuantumCircuit(6)
+        permrowcol._eliminate_row(circ, parity_mat, root, terminals)
 
         self.assertEqual(1, sum(parity_mat[:, 3]))
         self.assertEqual(1, parity_mat[0, 3])
@@ -837,8 +841,9 @@ class TestPermRowCol(QiskitTestCase):
         n_vertices = noncutting_vertices(graph)
         row = permrowcol.choose_row(n_vertices, parity_mat)
         terminals = [row]
+        circ = QuantumCircuit(6)
 
-        ret = permrowcol._eliminate_row(parity_mat, row, terminals)
+        ret = permrowcol._eliminate_row(circ, parity_mat, row, terminals)
         self.assertEqual(ret, [])
 
     def test_eliminate_row_doesnt_return_invalid_tuples(self):
@@ -859,7 +864,8 @@ class TestPermRowCol(QiskitTestCase):
         )
         root = 1
         terminals = np.array([1, 2, 4, 5])
-        ret = permrowcol._eliminate_row(parity_mat, root, terminals)
+        circ = QuantumCircuit(6)
+        ret = permrowcol._eliminate_row(circ, parity_mat, root, terminals)
 
         self.assertTrue((5, 1) not in ret)
         self.assertTrue((2, 1) not in ret)
