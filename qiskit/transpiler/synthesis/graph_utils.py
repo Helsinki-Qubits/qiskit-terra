@@ -13,7 +13,7 @@
 """Helper functions for hadling graphs"""
 
 import numpy as np
-import retworkx as rx
+import rustworkx as rx
 
 from qiskit.transpiler import CouplingMap
 
@@ -23,16 +23,15 @@ def pydigraph_to_pygraph(pydigraph: rx.PyDiGraph) -> rx.PyGraph:
     return pydigraph.to_undirected()
 
 
-def noncutting_vertices(coupling_map: CouplingMap) -> np.ndarray:
-    """Extracts noncutting vertices from a given coupling map. Direction is not taken into account.
+def noncutting_vertices(pygraph: rx.PyGraph) -> np.ndarray:
+    """Extracts noncutting vertices from a given coupling map graph. Direction is not taken into account.
 
     Args:
-        coupling_map (CouplingMap): topology
+        pygraph (rx.PyGraph): undirected graph of topology
 
     Returns:
         np.ndarray: array of non-cutting node indices
     """
-    pygraph = pydigraph_to_pygraph(coupling_map.graph)
     cutting_vertices = rx.articulation_points(pygraph)
     vertices = set(pygraph.node_indices())
     noncutting = np.array(list(vertices - cutting_vertices))
@@ -40,43 +39,53 @@ def noncutting_vertices(coupling_map: CouplingMap) -> np.ndarray:
     return noncutting
 
 
-def postorder_traversal(tree: rx.PyGraph, node: int, edges: list, parent: int = None):
+def postorder_traversal(tree: rx.PyGraph, root: int = None, visited: list = None) -> list:
     """Traverse the given tree in postorder. Traversed edges are saved as tuples.
     The first element is the parent and second the child.
     Children are visited in increasing order.
 
     Args:
         tree (rx.PyGraph): tree to traverse
-        node (int): root node
+        root (int): root node
+        visited (list): list of visited nodes
+
+    Returns:
         edges (list): edge list
-        parent (int, optional): parent node. Defaults to None.
     """
-    if node == None:
-        return
-    for n in sorted(tree.neighbors(node)):
-        if n == parent:
-            continue
-        postorder_traversal(tree, n, edges, node)
-    if parent != None:
-        edges.append((parent, node))
+    edges = []
+    if visited == None:
+        visited = []
+    if root != None:
+        visited.append(root)
+        for neighbor in sorted(tree.neighbors(root)):
+            if neighbor not in visited:
+                # Travels to the next node before adding the edge.
+                edges.extend(postorder_traversal(tree, neighbor, visited))
+                edges.append((root, neighbor))
+    return edges
 
 
-def preorder_traversal(tree: rx.PyGraph, node: int, edges: list, parent: int = None):
+def preorder_traversal(tree: rx.PyGraph, root: int = None, visited: list = None) -> list:
     """Preorder traversal of the edges of the given tree. Traversed edges are saved as tuples,
     where the first element is the parent and second the child. Children are visited in
     increasing order.
 
     Args:
         tree (rx.PyGraph): tree to traverse
-        node (int): root node
-        edges (list): list of edges
-        parent (int, optional): parent node. Defaults to None.
+        root (int): root node
+        visited (list): list of visited nodes
+
+    Returns:
+        edges (list): edge list
     """
-    if node == None:
-        return
-    if parent != None:
-        edges.append((parent, node))
-    for n in sorted(tree.neighbors(node)):
-        if n == parent:
-            continue
-        preorder_traversal(tree, n, edges, node)
+    edges = []
+    if visited == None:
+        visited = []
+    if root != None:
+        visited.append(root)
+        for neighbor in sorted(tree.neighbors(root)):
+            if neighbor not in visited:
+                # Adds edge before traveling to the next node.
+                edges.append((root, neighbor))
+                edges.extend(postorder_traversal(tree, neighbor, visited))
+    return edges
