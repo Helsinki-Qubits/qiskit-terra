@@ -68,13 +68,11 @@ class TestPermRowColSynthesis(QiskitTestCase):
         res_circ = dag_to_circuit(instance)
 
         self.assertTrue(Operator(empty).equiv(Operator(res_circ)))
-    
 
-    
     def test_run_with_random_circuit(self):
-        """Test that the input and output circuits are equivalent 
+        """Test that the input and output circuits are equivalent
         with a randomly generated circuit"""
-        
+
         backend = FakeManilaV2()
         coupling_map = backend.coupling_map
         coupling = CouplingMap(coupling_map)
@@ -87,9 +85,9 @@ class TestPermRowColSynthesis(QiskitTestCase):
 
         instance = synthesis.run(dag)
 
-        #self.assertTrue(Operator(composed).equiv(Operator.from_label('I'*len(r_circuit.qubits)))) # False
+        # self.assertTrue(Operator(composed).equiv(Operator.from_label('I'*len(r_circuit.qubits)))) # False
 
-        #self.assertTrue(Statevector.from_instruction(r_circuit).equiv(Statevector.from_instruction(res_circ)))
+        # self.assertTrue(Statevector.from_instruction(r_circuit).equiv(Statevector.from_instruction(res_circ)))
 
     @patch("qiskit.transpiler.passes.synthesis.perm_row_col_synthesis.PermRowCol.perm_row_col")
     def test_run_with_mock(self, mock_perm_row_col):
@@ -129,9 +127,11 @@ class TestPermRowColSynthesis(QiskitTestCase):
 
         res_circ = dag_to_circuit(instance)
 
-        self.assertTrue(Statevector.from_instruction(res_circ).equiv(Statevector.from_instruction(input_circ)))
+        self.assertTrue(
+            Statevector.from_instruction(res_circ).equiv(Statevector.from_instruction(input_circ))
+        )
         composed = input_circ.compose(res_circ.inverse(), qubits=range(len(res_circ.qubits)))
-        Operator(composed).equiv(Operator.from_label('I'*len(input_circ.qubits)))
+        Operator(composed).equiv(Operator.from_label("I" * len(input_circ.qubits)))
 
 
 if __name__ == "__main__":
