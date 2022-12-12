@@ -303,9 +303,9 @@ class TestPermRowCol(QiskitTestCase):
         self.assertTrue((2, 3) not in ret)
         self.assertTrue((2, 4) not in ret)
 
-    def test_eliminate_row_returns_list(self):
-        """Test the output type of eliminate_row"""
-        coupling = CouplingMap()
+    def test_eliminate_column_eliminates_selected_column3(self):
+        coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
+        coupling = CouplingMap(coupling_list)
         permrowcol = PermRowCol(coupling)
         parity_mat = np.array(
             [
