@@ -54,10 +54,14 @@ features:
     input parity matrix will also correspond to the qubit allocation after
     the function is run.
 
-    :func:`PermRowCol.run()` will change the two :class:`QuantumCircuit` objects
-    into two :class:`DAGCircuit` objects and try to compose them together???? If this is not possible, just one  :class:`DAGCircuit` object made from the circuit is used.
+    :func:`PermRowColSynthesis.run()` iterates the linear function nodes
+    of the given :class:`DAGCircuit` object, extracts the parity matrix of the
+    node and runs :func:`PermRowCol.perm_row_col()` on it. The resulting
+    circuit and permutation are then composed into a dag and the currently
+    iterated node substituted with this decomposition.
 
-    After the circuit has been re-synthesized in this manner by every node, it is returned a output.
+    After the circuits have been re-synthesized in this manner by every node,
+    the modified input :class:`DAGCircuit` object is returned.
 
 upgrade:
   - |
