@@ -83,6 +83,19 @@ class TestPermRowCol(QiskitTestCase):
 
     def test_perm_row_col_returns_correct_permutation(self):
         """Test that perm_row_col returns correct permutation"""
+        coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
+        coupling = CouplingMap(coupling_list)
+        permrowcol = PermRowCol(coupling)
+        parity_mat = np.array(
+            [
+                [0, 1, 0, 1, 1, 0],
+                [1, 1, 1, 1, 1, 0],
+                [1, 0, 0, 0, 1, 1],
+                [1, 1, 1, 0, 1, 0],
+                [1, 0, 1, 0, 1, 0],
+                [1, 0, 1, 0, 1, 1],
+            ]
+        )
         expected_perm = Permutation(6, [5, 3, 1, 0, 4, 2])
 
         perm = permrowcol.perm_row_col(parity_mat)
@@ -216,14 +229,28 @@ class TestPermRowCol(QiskitTestCase):
 
     def test_eliminate_column_eliminates_selected_column(self):
         """Test eliminate_column for eliminating selected column in case of example parity_matrix and coupling map"""
+        coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
+        coupling = CouplingMap(coupling_list)
+        permrowcol = PermRowCol(coupling)
+        parity_mat = np.array(
+            [
+                [0, 1, 0, 1, 1, 0],
+                [1, 1, 1, 1, 1, 0],
+                [1, 0, 0, 0, 1, 1],
+                [1, 1, 1, 0, 1, 0],
+                [1, 0, 1, 0, 1, 0],
+                [1, 0, 1, 0, 1, 1],
+            ]
+        )
+
         root = 0
         column = 3
         terminals = np.array([1, 0])
         circ = QuantumCircuit(6)
         permrowcol._eliminate_column(circ, parity_mat, root, column, terminals)
 
-        self.assertEqual(1, sum(self.parity_mat[:, column]))
-        self.assertEqual(1, self.parity_mat[0, column])
+        self.assertEqual(1, sum(parity_mat[:, column]))
+        self.assertEqual(1, parity_mat[0, column])
 
     def test_eliminate_column_eliminates_selected_column3(self):
         coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
@@ -287,6 +314,19 @@ class TestPermRowCol(QiskitTestCase):
 
     def test_eliminate_row_modifies_circuit_correctly(self):
         """Test eliminate_row method for correctness in case of example parity_matrix and coupling map"""
+        coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
+        coupling = CouplingMap(coupling_list)
+        permrowcol = PermRowCol(coupling)
+        parity_mat = np.array(
+            [
+                [0, 1, 0, 1, 1, 0],
+                [1, 0, 1, 0, 0, 0],
+                [1, 0, 0, 0, 1, 1],
+                [1, 1, 1, 0, 1, 0],
+                [1, 0, 1, 0, 1, 0],
+                [1, 0, 1, 0, 1, 1],
+            ]
+        )
         root = 0
         terminals = np.array([0, 1, 3])
         circ = QuantumCircuit(6)
@@ -301,6 +341,9 @@ class TestPermRowCol(QiskitTestCase):
 
     def test_eliminate_row_eliminates_selected_row(self):
         """Test eliminate_row method for correctness in case of example parity_matrix and coupling map"""
+        coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
+        coupling = CouplingMap(coupling_list)
+        permrowcol = PermRowCol(coupling)
         parity_mat = np.array(
             [
                 [0, 1, 0, 1, 1, 0],
@@ -311,8 +354,6 @@ class TestPermRowCol(QiskitTestCase):
                 [1, 0, 1, 0, 1, 1],
             ]
         )
-
-
         root = 0
         terminals = np.array([0, 1, 3])
         circ = QuantumCircuit(6)
