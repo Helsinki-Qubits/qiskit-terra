@@ -19,6 +19,9 @@ from qiskit.transpiler.passes.optimization.collect_linear_functions import Colle
 from qiskit.quantum_info.operators.operator import Operator
 from qiskit.transpiler.synthesis.matrix_utils import build_random_parity_matrix
 from qiskit.quantum_info import Statevector
+from qiskit.providers.fake_provider import FakeTenerife, FakeManilaV2
+from qiskit.synthesis.linear import graysynth, synth_cnot_count_full_pmh
+from qiskit.transpiler.synthesis.permrowcol import PermRowCol
 
 
 class TestPermRowColSynthesis(QiskitTestCase):
@@ -66,21 +69,24 @@ class TestPermRowColSynthesis(QiskitTestCase):
 
         self.assertTrue(Operator(empty).equiv(Operator(res_circ)))
     
+
+    
     def test_run_with_random_circuit(self):
         """Test that the input and output circuits are equivalent 
         with a randomly generated circuit"""
-        r_parity_matrix = build_random_parity_matrix(1337, 6, 60)
+        
+        backend = FakeManilaV2()
+        coupling_map = backend.coupling_map
+        coupling = CouplingMap(coupling_map)
+        synthesis = PermRowColSynthesis(coupling)
+
+        r_parity_matrix = build_random_parity_matrix(42, 5, 60).astype(int)
         r_circuit = LinearFunction(r_parity_matrix).synthesize()
+
         dag = CollectLinearFunctions().run(circuit_to_dag(r_circuit))
 
-        coupling_list = [(i, j) for i in range(6) for j in range(6) if i != j]
-        coupling = CouplingMap(coupling_list)
+        instance = synthesis.run(dag)
 
-        synthesis = PermRowColSynthesis(coupling)
-        #instance = synthesis.run(dag)
-        #res_circ = dag_to_circuit(instance)
-
-        #composed = r_circuit.compose(res_circ.inverse(), qubits=range(len(res_circ.qubits)))
         #self.assertTrue(Operator(composed).equiv(Operator.from_label('I'*len(r_circuit.qubits)))) # False
 
         #self.assertTrue(Statevector.from_instruction(r_circuit).equiv(Statevector.from_instruction(res_circ)))

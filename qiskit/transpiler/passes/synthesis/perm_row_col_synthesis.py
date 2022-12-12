@@ -37,9 +37,9 @@ class PermRowColSynthesis(LinearFunctionsSynthesis):
             DAGCircuit: re-synthesized dag circuit
         """
         for node in dag.named_nodes("linear_function"):
-            parity_mat = node.op.linear
+            parity_mat = node.op.linear.astype(int)
             permrowcol = PermRowCol(self._coupling_map)
-            cnots, permutation = permrowcol.perm_row_col(parity_mat, self._coupling_map)
+            cnots, permutation = permrowcol.perm_row_col(parity_mat)
 
             try:
                 decomposition = circuit_to_dag(cnots).compose(
