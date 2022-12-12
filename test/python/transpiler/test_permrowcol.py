@@ -764,6 +764,19 @@ class TestPermRowCol(QiskitTestCase):
 
         self.assertTrue(np.array_equal(instance, original_parity_map))
 
+    def test_common_case_with_complete_graph(self):
+        """Test common_case with complete graph"""
+        n = 6
+        parity_mat = build_random_parity_matrix(42, n, 60)
+        coupling_list = [(i, j) for i in range(n) for j in range(n) if i != j]
+        original_parity_map = parity_mat.copy()
+        coupling = CouplingMap(coupling_list)
+        permrowcol = PermRowCol(coupling)
+        circuit, perm = permrowcol.perm_row_col(parity_mat)
+        circuit_matrix = LinearFunction(circuit).linear
+        instance = np.matmul(circuit_matrix, parity_mat)
+        self.assertTrue(np.array_equal(instance, original_parity_map))
+
     def test_add_cnot_adds_corresponding_row_operations_on_parity_matrix(self):
         coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
         coupling = CouplingMap(coupling_list)
