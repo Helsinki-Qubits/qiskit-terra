@@ -3,6 +3,8 @@
 from builtins import issubclass
 import unittest
 
+import numpy as np
+
 from qiskit.test import QiskitTestCase
 from qiskit.transpiler.passes.synthesis.perm_row_col_synthesis import PermRowColSynthesis
 from qiskit.transpiler.passes.synthesis.linear_functions_synthesis import LinearFunctionsSynthesis
@@ -40,25 +42,18 @@ class TestPermRowColSynthesis(QiskitTestCase):
         data = backend.properties().to_dict()["gates"]
         coupling_list = [tuple(item["qubits"]) for item in data if item["gate"] == "cx"]
         coupling = CouplingMap(coupling_list)
-        print("coupling map:")
-        print(coupling)
+#        print("coupling map:")
+#        print(coupling)
 
         random_parity_matrix = build_random_parity_matrix(13, 5, 60).astype(int)
-        print("random parity matrix:")
-        print(random_parity_matrix)
+#        print("random parity matrix:")
+#        print(random_parity_matrix)
         n = 5
 
-        random_circuit = QuantumCircuit(n)
-        for r in range(n):
-            for c in range(n):
-                if random_parity_matrix[r][c] == 1:
-                    try:
-                        random_circuit.cx(r, c)
-                    except:
-                        pass
+        random_circuit = LinearFunction(random_parity_matrix).synthesize()
         random_circuit_copy = random_circuit.copy()
-        print("random circuit")
-        print(random_circuit)
+#        print("random circuit")
+#        print(random_circuit)
 
         dag_permrowcol = circuit_to_dag(random_circuit)
         dag_linearfunction = circuit_to_dag(random_circuit_copy)
@@ -71,20 +66,22 @@ class TestPermRowColSynthesis(QiskitTestCase):
 
         circuit_permrowcol = dag_to_circuit(dag_permrowcol)
         circuit_linearfunction = dag_to_circuit(dag_linearfunction)
-        print("circuits:")
-        print("permrowcol:")
-        print(circuit_permrowcol)
-        print("linearfunction:")
-        print(circuit_linearfunction)
+#        print("circuits:")
+#        print("permrowcol:")
+#        print(circuit_permrowcol)
+#        print("linearfunction:")
+#        print(circuit_linearfunction)
 
         parity_mat_permrowcol = LinearFunction(circuit_permrowcol).linear.astype(int)
         parity_mat_linearfunction = LinearFunction(circuit_linearfunction).linear.astype(int)
 
-        print("parity matrices:")
-        print("permrowcol:")
-        print(parity_mat_permrowcol)
-        print("linearfunction")
-        print(parity_mat_linearfunction)
+#        print("parity matrices:")
+#        print("permrowcol:")
+#        print(parity_mat_permrowcol)
+#        print("linearfunction")
+#        print(parity_mat_linearfunction)
+
+        self.assertTrue(np.array_equal(parity_mat_permrowcol, parity_mat_linearfunction))
 
 
 if __name__ == "__main__":
