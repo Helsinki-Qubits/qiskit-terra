@@ -85,9 +85,20 @@ class TestPermRowColSynthesis(QiskitTestCase):
 
         instance = synthesis.run(dag)
 
-        # self.assertTrue(Operator(composed).equiv(Operator.from_label('I'*len(r_circuit.qubits)))) # False
+        instance = CollectLinearFunctions().run(instance)
 
-        # self.assertTrue(Statevector.from_instruction(r_circuit).equiv(Statevector.from_instruction(res_circ)))
+        # print(LinearFunction(dag_to_circuit(instance).reverse_ops().decompose()).linear.astype(int))
+        # The circuit needs to be reversed for the permutation to work since it changes the rows not the columns
+        composed = r_circuit.compose(
+            dag_to_circuit(instance).reverse_ops().decompose().inverse(), qubits=range(5)
+        )
+        self.assertTrue(Operator(composed).equiv(Operator.from_label("I" * len(r_circuit.qubits))))
+
+        self.assertTrue(
+            Statevector.from_instruction(r_circuit).equiv(
+                Statevector.from_instruction(dag_to_circuit(instance).reverse_ops().decompose())
+            )
+        )
 
     @patch("qiskit.transpiler.passes.synthesis.perm_row_col_synthesis.PermRowCol.perm_row_col")
     def test_run_with_mock(self, mock_perm_row_col):
@@ -131,7 +142,7 @@ class TestPermRowColSynthesis(QiskitTestCase):
             Statevector.from_instruction(res_circ).equiv(Statevector.from_instruction(input_circ))
         )
         composed = input_circ.compose(res_circ.inverse(), qubits=range(len(res_circ.qubits)))
-        Operator(composed).equiv(Operator.from_label("I" * len(input_circ.qubits)))
+        # self.assertTrue(Operator(composed).equiv(Operator.from_label("I" * len(input_circ.qubits))))
 
 
 if __name__ == "__main__":
