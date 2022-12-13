@@ -19,6 +19,27 @@ from qiskit.transpiler.synthesis.graph_utils import noncutting_vertices, pydigra
 class TestPermRowCol(QiskitTestCase):
     """Test PermRowCol"""
 
+    def setUp(self):
+        super().setUp()
+        self.seed = 1234
+        self.rng = np.random.default_rng(self.seed)
+        self.n = 6
+        self.id_parity_mat = np.identity(self.n)
+        self.parity_mat = np.array(
+            [
+                [0, 1, 0, 1, 1, 0],
+                [1, 1, 1, 1, 1, 0],
+                [1, 0, 0, 0, 1, 1],
+                [1, 1, 1, 0, 1, 0],
+                [1, 0, 1, 0, 1, 0],
+                [1, 0, 1, 0, 1, 1],
+            ]
+        )
+        self.coupling_map = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
+        self.coupling = CouplingMap(self.coupling_map)
+        self.permrowcol = PermRowCol(self.coupling)
+
+
     def test_perm_row_col_returns_two_circuits(self):
         """Test the output type of perm_row_col"""
         coupling_list = [(0, 1), (0, 2), (1, 2)]
@@ -34,22 +55,16 @@ class TestPermRowCol(QiskitTestCase):
     def test_perm_row_col_returns_trivial_permutation_on_identity_matrix(self):
         """Test that perm_row_col returns a trivial permutation circuit when
         parity matrix is an identity matrix"""
-        coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
-        coupling = CouplingMap(coupling_list)
-        permrowcol = PermRowCol(coupling)
-        parity_mat = np.identity(6)
-        expected_perm = Permutation(6, [0, 1, 2, 3, 4, 5])
+        expected_perm = Permutation(self.n, [*range(0, self.n, 1)])
 
-        perm = permrowcol.perm_row_col(parity_mat)[1]
+        perm = self.permrowcol.perm_row_col(self.id_parity_mat)[1]
 
         self.assertEqual(perm, expected_perm)
 
     def test_perm_row_col_returns_correct_permutation_on_permutation_matrix(self):
         """Test that perm_row_col returns correct permutation circuit when parity matrix
         is a permutation of identity matrix"""
-        coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
-        coupling = CouplingMap(coupling_list)
-        permrowcol = PermRowCol(coupling)
+        permrowcol = PermRowCol(self.coupling)
         parity_mat = np.array(
             [
                 [1, 0, 0, 0, 0, 0],
@@ -91,23 +106,14 @@ class TestPermRowCol(QiskitTestCase):
 
     def test_perm_row_col_doesnt_return_cnots_with_identity_matrix(self):
         """Test that permrowcol doesn't return any cnots when matrix as parity matrix is identity matrix"""
-        coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
-        coupling = CouplingMap(coupling_list)
-        permrowcol = PermRowCol(coupling)
-        parity_mat = np.identity(6)
-
-        instance = permrowcol.perm_row_col(parity_mat)[0]
+        instance = self.permrowcol.perm_row_col(self.id_parity_mat)[0]
         self.assertEqual(len(instance.data), 0)
 
     def test_perm_row_col_doesnt_return_cnots_with_identity_matrix_permutation(self):
         """Test that permrowcol doesn't return any cnots when matrix as parity matrix is permutation of identity matrix"""
-        coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
-        coupling = CouplingMap(coupling_list)
-        permrowcol = PermRowCol(coupling)
-        parity_mat = np.identity(6)
-        np.random.shuffle(parity_mat)
+        np.random.shuffle(self.id_parity_mat)
 
-        instance = permrowcol.perm_row_col(parity_mat)[0]
+        instance = self.permrowcol.perm_row_col(self.id_parity_mat)[0]
         self.assertEqual(len(instance.data), 0)
 
     def test_choose_row_returns_np_int64(self):
@@ -388,13 +394,9 @@ class TestPermRowCol(QiskitTestCase):
 
     def test_get_nodes_for_eliminate_row_returns_list(self):
         """Tests if _get_nodes_for_eliminate_row returns list"""
-
-        coupling = CouplingMap()
-        permrowcol = PermRowCol(coupling)
-        parity_mat = np.identity(3)
         chosen_column = 1
         chosen_row = 1
-        instance = permrowcol._get_nodes_for_eliminate_row(parity_mat, chosen_column, chosen_row)
+        instance = self.permrowcol._get_nodes_for_eliminate_row(self.id_parity_mat, chosen_column, chosen_row)
 
         self.assertIsInstance(instance, list)
 
@@ -417,7 +419,7 @@ class TestPermRowCol(QiskitTestCase):
         chosen_row = 0
         chosen_column = 3
         terminals = np.array([0, 1, 3])
-        instance = permrowcol._get_nodes_for_eliminate_row(parity_mat, chosen_column, chosen_row)
+        instance = self.permrowcol._get_nodes_for_eliminate_row(parity_mat, chosen_column, chosen_row)
 
         self.assertEqual(np.array_equal(instance, terminals), True)
 
@@ -446,29 +448,23 @@ class TestPermRowCol(QiskitTestCase):
 
     def test_return_columns_return_list(self):
         """Test the output type of return_columns"""
-        coupling = CouplingMap()
-        permrowcol = PermRowCol(coupling)
-
-        instance = permrowcol._return_columns([-1, -1, -1])
+        instance = self.permrowcol._return_columns([-1]*self.n)
 
         self.assertIsInstance(instance, list)
 
     def test_return_columns_return_list_of_indices(self):
         """Test the correctness of return_columns output"""
-        coupling = CouplingMap()
-        permrowcol = PermRowCol(coupling)
+        instance = self.permrowcol._return_columns([-1]*self.n)
 
-        instance = permrowcol._return_columns([-1, -1, -1])
+        self.assertCountEqual(instance, [*range(0, self.n)])
 
-        self.assertCountEqual(instance, [0, 1, 2])
-
-        instance = permrowcol._return_columns([-2, -1, 0, 1, 2, -1])
+        instance = self.permrowcol._return_columns([-2, -1, 0, 1, 2, -1])
         self.assertCountEqual(instance, [1, 5])
 
-        instance = permrowcol._return_columns([])
+        instance = self.permrowcol._return_columns([])
         self.assertCountEqual(instance, [])
 
-        instance = permrowcol._return_columns([1, 2, 3, 4, 5, 6])
+        instance = self.permrowcol._return_columns([*range(0, self.n)])
         self.assertCountEqual(instance, [])
 
     def test_get_nodes_returns_list(self):
