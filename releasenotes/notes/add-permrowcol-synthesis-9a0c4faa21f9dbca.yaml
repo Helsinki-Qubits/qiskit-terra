@@ -1,0 +1,92 @@
+---
+prelude: >
+  - |
+    This release introduces a new transpiler synthesis pass using a PermRowCol
+    algorithm for routing CNOTS as efficiently as possible. Instead of
+    SWAP-based techniques, the synthesis pass uses a few Steiner Tree-based
+    PermRowCol transpilation algorithm.
+
+    The PermRowCol algorithm dynamically reallocates logical qubits during the
+    computation, and thus results in fewer output CNOTs than the algorithms
+    Steiner-Gauss and RowCol. Each SWAP-gate adds three CNOT-gates, which
+    causes significant overhead. PermRowCol utilises bridge template which acts
+    like a remote CNOT instead of SWAP-gates, which reduces the required number
+    of added CNOT-gates. However, the bridge template does not move the qubits.
+
+features:
+  - |
+    List new features here, or remove this section.  All of the list items in
+    this section are combined when the release notes are rendered, so the text
+    needs to be worded so that it does not depend on any information only
+    available in another section, such as the prelude. This may mean repeating
+    some details.
+
+    Added a new transpiler synthesis pass PermRowColSynthesis that uses a
+    PermRowCol algorithm for routing CNOTS as efficiently as possible. Instead
+    of SWAP-based techniques, the synthesis pass uses a few Steiner Tree-based
+    PermRowCol transpilation algorithm.
+
+    The PermRowCol algorithm dynamically reallocates logical qubits during the
+    computation, and thus results in fewer output CNOTs than the algorithms
+    Steiner-Gauss and RowCol. Each SWAP-gate adds three CNOT-gates, which
+    causes significant overhead. PermRowCol utilises bridge template which acts
+    like a remote CNOT instead of SWAP-gates, which reduces the required number
+    of added CNOT-gates. However, the bridge template does not move the qubits.
+
+    Added a :class:`PermRowColSynthesis` that inherits
+    :class:`LinearFunctionsSynthesis`, and upon initialization receives a
+    :class:`CouplingMap` object denoting the applicable connections between
+    qubits.
+
+    In :func:`PermRowColSynthesis.run()` method the function receives
+    :class:`DAGCircuit` object to re-synthesize, and the method returns a
+    :class:`DAGCircuit` object. The synthesis pass utilizes :class:`PermRowCol`
+    that gets a :class:`CouplingMap` object upon initialization.
+
+    Added a :class:`PermRowCol` that receives a :class:`CouplingMap` upon
+    initialization. The class executes the PermRowCol algorithm.
+
+    The circuit is rerouted by every node by running
+    :func:`PermRowCol.perm_row_col()` that receives as input a parity matrix
+    that is the linear representation of a given node. The function modifies
+    the parity matrix and returns two :class:`QuantumCircuit` objects that
+    corresponds with the re-synthesized circuit and the qubit allocation. The
+    input parity matrix will also correspond to the qubit allocation after
+    the function is run.
+
+    :func:`PermRowColSynthesis.run()` iterates the linear function nodes
+    of the given :class:`DAGCircuit` object, extracts the parity matrix of the
+    node and runs :func:`PermRowCol.perm_row_col()` on it. The resulting
+    circuit and permutation are then composed into a dag and the currently
+    iterated node substituted with this decomposition.
+
+    After the circuits have been re-synthesized in this manner by every node,
+    the modified input :class:`DAGCircuit` object is returned.
+
+upgrade:
+  - |
+    List upgrade notes here, or remove this section.  All of the list items in
+    this section are combined when the release notes are rendered, so the text
+    needs to be worded so that it does not depend on any information only
+    available in another section, such as the prelude. This may mean repeating
+    some details.
+
+  # Do we need?
+
+critical:
+  - |
+    Add critical notes here, or remove this section.  All of the list items in
+    this section are combined when the release notes are rendered, so the text
+    needs to be worded so that it does not depend on any information only
+    available in another section, such as the prelude. This may mean repeating
+    some details.
+
+  # Do we need?
+
+other:
+  - |
+    Add other notes here, or remove this section.  All of the list items in
+    this section are combined when the release notes are rendered, so the text
+    needs to be worded so that it does not depend on any information only
+    available in another section, such as the prelude. This may mean repeating
+    some details.
