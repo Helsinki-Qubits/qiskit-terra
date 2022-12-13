@@ -4,8 +4,6 @@ from builtins import issubclass
 import unittest
 from unittest.mock import patch
 
-import numpy as np
-
 from qiskit.test import QiskitTestCase
 from qiskit.transpiler.passes.synthesis.perm_row_col_synthesis import PermRowColSynthesis
 from qiskit.transpiler.passes.synthesis.linear_functions_synthesis import LinearFunctionsSynthesis
@@ -19,9 +17,7 @@ from qiskit.transpiler.passes.optimization.collect_linear_functions import Colle
 from qiskit.quantum_info.operators.operator import Operator
 from qiskit.transpiler.synthesis.matrix_utils import build_random_parity_matrix
 from qiskit.quantum_info import Statevector
-from qiskit.providers.fake_provider import FakeTenerife, FakeManilaV2
-from qiskit.synthesis.linear import graysynth, synth_cnot_count_full_pmh
-from qiskit.transpiler.synthesis.permrowcol import PermRowCol
+from qiskit.providers.fake_provider import FakeManilaV2
 
 
 class TestPermRowColSynthesis(QiskitTestCase):
