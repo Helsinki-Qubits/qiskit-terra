@@ -13,6 +13,7 @@ from qiskit.transpiler.synthesis.matrix_utils import build_random_parity_matrix
 from qiskit.providers.fake_provider import FakeTenerife, FakeManilaV2
 from qiskit.circuit.library.generalized_gates.linear_function import LinearFunction
 from qiskit.quantum_info import Statevector
+from qiskit.transpiler.synthesis.graph_utils import noncutting_vertices, pydigraph_to_pygraph
 
 
 class TestPermRowCol(QiskitTestCase):
@@ -245,7 +246,6 @@ class TestPermRowCol(QiskitTestCase):
         self.assertEqual(1, sum(parity_mat[:, column]))
         self.assertEqual(1, parity_mat[0, column])
 
-    # test for debugging
     def test_eliminate_column_eliminates_selected_column3(self):
         coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
         coupling = CouplingMap(coupling_list)
@@ -707,6 +707,19 @@ class TestPermRowCol(QiskitTestCase):
 
         self.assertTrue(np.array_equal(instance, original_parity_map))
 
+    def test_common_case_with_complete_graph(self):
+        """Test common_case with complete graph"""
+        n = 6
+        parity_mat = build_random_parity_matrix(42, n, 60)
+        coupling_list = [(i, j) for i in range(n) for j in range(n) if i != j]
+        original_parity_map = parity_mat.copy()
+        coupling = CouplingMap(coupling_list)
+        permrowcol = PermRowCol(coupling)
+        circuit, perm = permrowcol.perm_row_col(parity_mat)
+        circuit_matrix = LinearFunction(circuit).linear
+        instance = np.matmul(circuit_matrix, parity_mat)
+        self.assertTrue(np.array_equal(instance, original_parity_map))
+
     def test_add_cnot_adds_corresponding_row_operations_on_parity_matrix(self):
         coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
         coupling = CouplingMap(coupling_list)
@@ -730,6 +743,29 @@ class TestPermRowCol(QiskitTestCase):
         self.assertTrue(len(circ.data) == 1)
         self.assertEqual(sum(parity_mat[:, 3]), 1)
         self.assertEqual(parity_mat[0, 3], 1)
+
+    def test_eliminate_row_doesnt_change_already_eliminated_column(self):
+        """Test that eliminate_row doesn't mess up the already eliminated column"""
+        coupling_list = [(0, 1), (0, 3), (1, 2), (1, 4), (2, 5), (3, 4), (4, 5)]
+        coupling = CouplingMap(coupling_list)
+        permrowcol = PermRowCol(coupling)
+        parity_mat = np.array(
+            [
+                [1, 1, 1, 1, 1, 0],
+                [1, 0, 1, 0, 0, 0],
+                [1, 0, 0, 0, 1, 1],
+                [1, 1, 1, 0, 1, 0],
+                [1, 0, 1, 0, 1, 0],
+                [1, 0, 1, 0, 1, 1],
+            ]
+        )
+        root = 0
+        terminals = np.array([root, 1, 3])
+        circ = QuantumCircuit(6)
+        permrowcol._eliminate_row(circ, parity_mat, root, terminals)
+
+        self.assertEqual(1, sum(parity_mat[:, 3]))
+        self.assertEqual(1, parity_mat[0, 3])
 
 
 if __name__ == "__main__":
