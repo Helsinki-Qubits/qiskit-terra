@@ -3,6 +3,7 @@
 from builtins import issubclass
 import unittest
 from unittest.mock import patch
+import numpy as np
 
 from qiskit.test import QiskitTestCase
 from qiskit.transpiler.passes.synthesis.perm_row_col_synthesis import PermRowColSynthesis
@@ -98,15 +99,20 @@ class TestPermRowColSynthesis(QiskitTestCase):
 
     @patch("qiskit.transpiler.passes.synthesis.perm_row_col_synthesis.PermRowCol.perm_row_col")
     def test_run_with_mock(self, mock_perm_row_col):
-        """Test run method"""
-        input_circ = QuantumCircuit(6)
-        input_circ.cx(0, 1)
-        input_circ.cx(1, 5)
-        input_circ.cx(3, 1)
-        input_circ.cx(1, 4)
-        input_circ.cx(1, 3)
-        input_circ.cx(3, 5)
-        input_circ.cx(2, 1)
+        """Test run method with mocked perm_row_col"""
+        parity_mat = np.array(
+            [
+                [0, 1, 1, 1, 1, 1],
+                [1, 1, 0, 1, 0, 0],
+                [0, 1, 0, 1, 1, 1],
+                [1, 1, 0, 0, 0, 0],
+                [1, 1, 1, 1, 1, 1],
+                [0, 0, 1, 0, 0, 1],
+            ]
+        )
+
+        input_circ = LinearFunction(parity_mat).synthesize()
+
         collec = CollectLinearFunctions()
         e_dag = circuit_to_dag(input_circ)
         dag = collec.run(e_dag)
@@ -131,14 +137,14 @@ class TestPermRowColSynthesis(QiskitTestCase):
 
         synthesis = PermRowColSynthesis(coupling)
         instance = synthesis.run(dag)
-
-        res_circ = dag_to_circuit(instance)
+        # instance = CollectLinearFunctions().run(instance) # fails with this unless the resulting circuit below is decomposed
+        res_circ = dag_to_circuit(instance)  # .decompose()
 
         self.assertTrue(
             Statevector.from_instruction(res_circ).equiv(Statevector.from_instruction(input_circ))
         )
         composed = input_circ.compose(res_circ.inverse(), qubits=range(len(res_circ.qubits)))
-        # self.assertTrue(Operator(composed).equiv(Operator.from_label("I" * len(input_circ.qubits))))
+        self.assertTrue(Operator(composed).equiv(Operator.from_label("I" * len(input_circ.qubits))))
 
 
 if __name__ == "__main__":
