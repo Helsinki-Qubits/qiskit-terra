@@ -12,13 +12,12 @@
 
 """Perm_row_col synthesis implementation"""
 
-import numpy as np
-
 from qiskit.transpiler.passes.synthesis.linear_functions_synthesis import LinearFunctionsSynthesis
 from qiskit.dagcircuit.dagcircuit import DAGCircuit
 from qiskit.transpiler.synthesis.permrowcol import PermRowCol
 from qiskit.transpiler import CouplingMap
 from qiskit.converters import circuit_to_dag
+from qiskit.dagcircuit.exceptions import DAGCircuitError
 
 
 class PermRowColSynthesis(LinearFunctionsSynthesis):
@@ -37,13 +36,19 @@ class PermRowColSynthesis(LinearFunctionsSynthesis):
         Returns:
             DAGCircuit: re-synthesized dag circuit
         """
-        for node in dag.named_nodes("cx"):
-            # TODO: do something to the nodes
-            pass
+        for node in dag.named_nodes("linear_function"):
+            parity_mat = node.op.linear.astype(int)
+            permrowcol = PermRowCol(self._coupling_map)
+            cnots, permutation = permrowcol.perm_row_col(parity_mat)
 
-        # alt parity matrix of dag circuit, dtype=bool
-        # parity_mat = LinearFunction(dag_to_circuit(dag)).linear
-        parity_mat = np.identity(self._coupling_map.size())
-        permrowcol = PermRowCol(self._coupling_map)
-        circuit, perm = permrowcol.perm_row_col(parity_mat)
-        return circuit_to_dag(circuit)
+            try:
+                decomposition = circuit_to_dag(cnots).compose(
+                    circuit_to_dag(permutation), inplace=False
+                )
+            except DAGCircuitError as err:
+                print("Dag composition failed, defaulting to just permrowcol cnot", err)
+                decomposition = circuit_to_dag(cnots)
+
+            dag.substitute_node_with_dag(node, decomposition)
+
+        return dag

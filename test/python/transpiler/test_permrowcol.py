@@ -39,7 +39,6 @@ class TestPermRowCol(QiskitTestCase):
         self.coupling = CouplingMap(self.coupling_map)
         self.permrowcol = PermRowCol(self.coupling)
 
-
     def test_perm_row_col_returns_two_circuits(self):
         """Test the output type of perm_row_col"""
         coupling_list = [(0, 1), (0, 2), (1, 2)]
@@ -396,7 +395,9 @@ class TestPermRowCol(QiskitTestCase):
         """Tests if _get_nodes_for_eliminate_row returns list"""
         chosen_column = 1
         chosen_row = 1
-        instance = self.permrowcol._get_nodes_for_eliminate_row(self.id_parity_mat, chosen_column, chosen_row)
+        instance = self.permrowcol._get_nodes_for_eliminate_row(
+            self.id_parity_mat, chosen_column, chosen_row
+        )
 
         self.assertIsInstance(instance, list)
 
@@ -419,7 +420,9 @@ class TestPermRowCol(QiskitTestCase):
         chosen_row = 0
         chosen_column = 3
         terminals = np.array([0, 1, 3])
-        instance = self.permrowcol._get_nodes_for_eliminate_row(parity_mat, chosen_column, chosen_row)
+        instance = self.permrowcol._get_nodes_for_eliminate_row(
+            parity_mat, chosen_column, chosen_row
+        )
 
         self.assertEqual(np.array_equal(instance, terminals), True)
 
@@ -448,13 +451,13 @@ class TestPermRowCol(QiskitTestCase):
 
     def test_return_columns_return_list(self):
         """Test the output type of return_columns"""
-        instance = self.permrowcol._return_columns([-1]*self.n)
+        instance = self.permrowcol._return_columns([-1] * self.n)
 
         self.assertIsInstance(instance, list)
 
     def test_return_columns_return_list_of_indices(self):
         """Test the correctness of return_columns output"""
-        instance = self.permrowcol._return_columns([-1]*self.n)
+        instance = self.permrowcol._return_columns([-1] * self.n)
 
         self.assertCountEqual(instance, [*range(0, self.n)])
 
